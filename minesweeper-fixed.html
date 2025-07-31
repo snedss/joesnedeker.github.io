@@ -25,10 +25,10 @@
 <table id="board"></table>
 <script>
 const rows = 8, cols = 8, totalMines = 10;
-let board, revealed, mineSet, firstClick;
+let board, revealed, mineSet, firstClick, gameOver;
 
 function initGame() {
-  board = []; revealed = []; mineSet = new Set(); firstClick = true;
+  board = []; revealed = []; mineSet = new Set(); firstClick = true; gameOver = false;
   const table = document.getElementById("board");
   table.innerHTML = "";
   for (let r = 0; r < rows; r++) {
