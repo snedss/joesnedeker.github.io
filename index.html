@@ -23,6 +23,7 @@
       left: 0;
       right: 0;
       border-top: 2px solid #808080;
+      z-index: 1000;
     }
     .start-button {
       display: flex;
@@ -42,7 +43,7 @@
       border: 2px solid #808080;
       width: 160px;
       display: none;
-      z-index: 1000;
+      z-index: 1001;
     }
     .start-menu ul {
       list-style: none;
@@ -58,19 +59,41 @@
       background: #000080;
       color: white;
     }
-    .window-container {
+    .window {
       position: absolute;
-      top: 80px;
-      left: 80px;
       display: none;
       z-index: 10;
+      cursor: move;
     }
-    .window-body {
-      padding: 1rem;
+    .desktop-icon {
+      position: absolute;
+      top: 40px;
+      left: 40px;
+      text-align: center;
+      width: 60px;
+      cursor: pointer;
+    }
+    .desktop-icon img {
+      width: 32px;
+      height: 32px;
+    }
+    .desktop-icon span {
+      font-size: 12px;
+      display: block;
+      margin-top: 4px;
     }
   </style>
 </head>
 <body>
+
+<div class="desktop-icon" onclick="openWindow('about')">
+  <img src="https://i.imgur.com/Oj1bXG3.png" alt="icon">
+  <span>About</span>
+</div>
+<div class="desktop-icon" style="left: 120px;" onclick="openWindow('contact')">
+  <img src="https://i.imgur.com/fQbRzLO.png" alt="icon">
+  <span>Contact</span>
+</div>
 
 <div class="start-menu" id="startMenu">
   <ul>
@@ -80,7 +103,7 @@
 </div>
 
 <!-- About Window -->
-<div class="window window-container" id="aboutWindow" style="width: 300px;">
+<div class="window window-95" id="aboutWindow" style="top: 80px; left: 80px;">
   <div class="title-bar">
     <div class="title-bar-text">About Joe</div>
     <div class="title-bar-controls">
@@ -88,12 +111,12 @@
     </div>
   </div>
   <div class="window-body">
-    <p>Hello! I'm Joe Snedeker. This is my retro-style homepage.</p>
+    <p>Hello! I'm Joe Snedeker. Welcome to my pixel-perfect Windows 95 homepage.</p>
   </div>
 </div>
 
 <!-- Contact Window -->
-<div class="window window-container" id="contactWindow" style="width: 300px; top: 180px; left: 120px;">
+<div class="window window-95" id="contactWindow" style="top: 160px; left: 120px;">
   <div class="title-bar">
     <div class="title-bar-text">Contact Joe</div>
     <div class="title-bar-controls">
@@ -101,13 +124,13 @@
     </div>
   </div>
   <div class="window-body">
-    <p>Reach me at <a href="mailto:joe@joesnedeker.com">joe@joesnedeker.com</a></p>
+    <p>Email me at <a href="mailto:joe@joesnedeker.com">joe@joesnedeker.com</a></p>
   </div>
 </div>
 
 <div class="taskbar">
   <button class="start-button" onclick="toggleStartMenu()">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Crystal_Project_start.png/32px-Crystal_Project_start.png" alt="JS Icon">
+    <img src="https://raw.githubusercontent.com/edent/SuperTinyIcons/master/images/svg/javascript.svg" alt="JS Icon">
     <span>Start</span>
   </button>
 </div>
@@ -119,13 +142,52 @@
   }
 
   function openWindow(id) {
-    document.getElementById(id + "Window").style.display = "block";
+    const win = document.getElementById(id + "Window");
+    win.style.display = "block";
+    win.style.zIndex = ++window.z;
     document.getElementById("startMenu").style.display = "none";
   }
 
   function closeWindow(id) {
     document.getElementById(id + "Window").style.display = "none";
   }
+
+  function dragElement(elmnt) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (elmnt.querySelector(".title-bar")) {
+      elmnt.querySelector(".title-bar").onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+      elmnt.style.zIndex = ++window.z;
+    }
+
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+  }
+
+  window.z = 10;
+  dragElement(document.getElementById("aboutWindow"));
+  dragElement(document.getElementById("contactWindow"));
 </script>
 
 </body>
