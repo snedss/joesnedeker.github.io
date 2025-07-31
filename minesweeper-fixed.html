@@ -95,6 +95,7 @@ function reveal(r, c) {
     cell.textContent = "💣";
     gameOver = true;
     revealAll();
+    setTimeout(() => {}, 1): //fixes render delay
     return;
   }
 
