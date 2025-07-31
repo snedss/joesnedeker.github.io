@@ -17,13 +17,25 @@
       height: 40px;
       display: flex;
       align-items: center;
-      padding: 0 8px;
+      justify-content: space-between;
+      padding: 0 6px;
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
       border-top: 2px solid #808080;
       z-index: 1000;
+    }
+    .taskbar-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .taskbar-right {
+      font-size: 12px;
+      padding: 0 8px;
+      background: #c0c0c0;
+      border: 2px inset #fff;
     }
     .start-button {
       display: flex;
@@ -34,6 +46,13 @@
       width: 20px;
       height: 20px;
       image-rendering: pixelated;
+    }
+    .search-box {
+      font-size: 12px;
+      height: 20px;
+      border: 2px inset #fff;
+      padding: 2px 6px;
+      width: 160px;
     }
     .start-menu {
       position: absolute;
@@ -67,18 +86,18 @@
     }
     .desktop-icon {
       position: absolute;
-      top: 40px;
-      left: 40px;
+      width: 64px;
       text-align: center;
-      width: 60px;
+      color: black;
+      font-size: 12px;
       cursor: pointer;
     }
     .desktop-icon img {
       width: 32px;
       height: 32px;
+      image-rendering: pixelated;
     }
     .desktop-icon span {
-      font-size: 12px;
       display: block;
       margin-top: 4px;
     }
@@ -86,15 +105,17 @@
 </head>
 <body>
 
-<div class="desktop-icon" onclick="openWindow('about')">
-  <img src="https://i.imgur.com/Oj1bXG3.png" alt="icon">
-  <span>About</span>
+<!-- Desktop Icons -->
+<div class="desktop-icon" style="top: 40px; left: 40px;" onclick="openWindow('about')">
+  <img src="https://i.imgur.com/dl28Bnf.png" alt="about icon">
+  <span>About Me</span>
 </div>
-<div class="desktop-icon" style="left: 120px;" onclick="openWindow('contact')">
-  <img src="https://i.imgur.com/fQbRzLO.png" alt="icon">
+<div class="desktop-icon" style="top: 120px; left: 40px;" onclick="openWindow('contact')">
+  <img src="https://i.imgur.com/eID9h7t.png" alt="contact icon">
   <span>Contact</span>
 </div>
 
+<!-- Start Menu -->
 <div class="start-menu" id="startMenu">
   <ul>
     <li onclick="openWindow('about')">🧠 About</li>
@@ -103,7 +124,7 @@
 </div>
 
 <!-- About Window -->
-<div class="window window-95" id="aboutWindow" style="top: 80px; left: 80px;">
+<div class="window window-95" id="aboutWindow" style="top: 100px; left: 160px;">
   <div class="title-bar">
     <div class="title-bar-text">About Joe</div>
     <div class="title-bar-controls">
@@ -116,7 +137,7 @@
 </div>
 
 <!-- Contact Window -->
-<div class="window window-95" id="contactWindow" style="top: 160px; left: 120px;">
+<div class="window window-95" id="contactWindow" style="top: 200px; left: 240px;">
   <div class="title-bar">
     <div class="title-bar-text">Contact Joe</div>
     <div class="title-bar-controls">
@@ -128,11 +149,16 @@
   </div>
 </div>
 
+<!-- Taskbar -->
 <div class="taskbar">
-  <button class="start-button" onclick="toggleStartMenu()">
-    <img src="https://raw.githubusercontent.com/edent/SuperTinyIcons/master/images/svg/javascript.svg" alt="JS Icon">
-    <span>Start</span>
-  </button>
+  <div class="taskbar-left">
+    <button class="start-button" onclick="toggleStartMenu()">
+      <img src="https://i.imgur.com/fAz90lO.png" alt="JS Icon">
+      <span>Start</span>
+    </button>
+    <input class="search-box" type="text" placeholder="Welcome to JS Desktop">
+  </div>
+  <div class="taskbar-right" id="clock">--:--</div>
 </div>
 
 <script>
@@ -159,7 +185,6 @@
     }
 
     function dragMouseDown(e) {
-      e = e || window.event;
       e.preventDefault();
       pos3 = e.clientX;
       pos4 = e.clientY;
@@ -169,8 +194,6 @@
     }
 
     function elementDrag(e) {
-      e = e || window.event;
-      e.preventDefault();
       pos1 = pos3 - e.clientX;
       pos2 = pos4 - e.clientY;
       pos3 = e.clientX;
@@ -188,6 +211,17 @@
   window.z = 10;
   dragElement(document.getElementById("aboutWindow"));
   dragElement(document.getElementById("contactWindow"));
+
+  function updateClock() {
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    document.getElementById('clock').textContent = hours + ":" + minutes + " " + ampm;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
 </script>
 
 </body>
