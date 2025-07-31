@@ -71,6 +71,8 @@ function updateNeighbors(r, c) {
 }
 
 function onCellClick(e) {
+  if (gameOver) return;
+  
   const r = +e.target.dataset.row;
   const c = +e.target.dataset.col;
 
@@ -91,8 +93,8 @@ function reveal(r, c) {
   if (board[r][c] === "M") {
     cell.classList.add("mine");
     cell.textContent = "💣";
+    gameOver = true;
     revealAll();
-    setTimeout(() => alert("Game Over! Click Reset to play again."), 100);
     return;
   }
 
