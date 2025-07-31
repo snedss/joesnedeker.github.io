@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Minesweeper</title>
+  <style>
+    body { background: #c0c0c0; font-family: monospace; text-align: center; }
+    table { margin: 10px auto; border-collapse: collapse; }
+    td {
+      width: 24px; height: 24px;
+      text-align: center; vertical-align: middle;
+      background: #ddd; border: 1px solid #999;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    td.revealed { background: #fff; cursor: default; }
+    td.mine { background: #f00; }
+    button { margin-top: 10px; }
+  </style>
+</head>
+<body>
+<h3>Minesweeper</h3>
+<div><button onclick="initGame()">Reset</button></div>
+<table id="board"></table>
+<script>
+const rows = 8, cols = 8, totalMines = 10;
+let board, revealed, mineSet, firstClick;
+
+function initGame() {
+  board = []; revealed = []; mineSet = new Set(); firstClick = true;
+  const table = document.getElementById("board");
+  table.innerHTML = "";
+  for (let r = 0; r < rows; r++) {
+    const row = document.createElement("tr");
+    board[r] = []; revealed[r] = [];
+    for (let c = 0; c < cols; c++) {
+      const cell = document.createElement("td");
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+      cell.addEventListener("click", onCellClick);
+      row.appendChild(cell);
+      board[r][c] = 0;
+      revealed[r][c] = false;
+    }
+    table.appendChild(row);
+  }
+}
+
+function placeMines(excludeR, excludeC) {
+  while (mineSet.size < totalMines) {
+    const r = Math.floor(Math.random() * rows);
+    const c = Math.floor(Math.random() * cols);
+    const key = r + "," + c;
+    if ((r === excludeR && c === excludeC) || mineSet.has(key)) continue;
+    mineSet.add(key);
+    board[r][c] = "M";
+    updateNeighbors(r, c);
+  }
+}
+
+function updateNeighbors(r, c) {
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc] !== "M") {
+        board[nr][nc]++;
+      }
+    }
+  }
+}
+
+function onCellClick(e) {
+  const r = +e.target.dataset.row;
+  const c = +e.target.dataset.col;
+
+  if (firstClick) {
+    placeMines(r, c);
+    firstClick = false;
+  }
+
+  reveal(r, c);
+}
+
+function reveal(r, c) {
+  if (r < 0 || c < 0 || r >= rows || c >= cols || revealed[r][c]) return;
+  const cell = document.querySelector(`td[data-row='${r}'][data-col='${c}']`);
+  revealed[r][c] = true;
+  cell.classList.add("revealed");
+
+  if (board[r][c] === "M") {
+    cell.classList.add("mine");
+    cell.textContent = "💣";
+    revealAll();
+    setTimeout(() => alert("Game Over! Click Reset to play again."), 100);
+    return;
+  }
+
+  if (board[r][c] > 0) {
+    cell.textContent = board[r][c];
+  } else {
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        reveal(r + dr, c + dc);
+      }
+    }
+  }
+}
+
+function revealAll() {
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (!revealed[r][c]) {
+        const cell = document.querySelector(`td[data-row='${r}'][data-col='${c}']`);
+        if (board[r][c] === "M") {
+          cell.classList.add("mine");
+          cell.textContent = "💣";
+        } else {
+          cell.classList.add("revealed");
+          if (board[r][c] > 0) cell.textContent = board[r][c];
+        }
+      }
+    }
+  }
+}
+
+initGame();
+</script>
+</body>
+</html>
