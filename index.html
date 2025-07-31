@@ -2,50 +2,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Joe Snedeker</title>
+  <meta charset="UTF-8">
+  <title>Joe Snedeker - Desktop</title>
   <link rel="stylesheet" href="https://unpkg.com/98.css">
   <style>
     body {
+      margin: 0;
       background: #c0c0c0;
       font-family: sans-serif;
-      height: 100vh;
-      margin: 0;
+      overflow: hidden;
+    }
+    .taskbar {
+      background: silver;
+      height: 40px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      padding: 0 8px;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      border-top: 2px solid #808080;
     }
-    .window {
-      width: 400px;
+    .start-button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .content {
-      padding: 2rem;
-      text-align: center;
+    .start-button img {
+      width: 20px;
+      height: 20px;
+      image-rendering: pixelated;
     }
-    .contact-button {
-      margin-top: 1rem;
+    .start-menu {
+      position: absolute;
+      bottom: 44px;
+      left: 8px;
+      background: #c0c0c0;
+      border: 2px solid #808080;
+      width: 160px;
+      display: none;
+      z-index: 1000;
+    }
+    .start-menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .start-menu li {
+      padding: 8px;
+      border-bottom: 1px solid #808080;
+      cursor: pointer;
+    }
+    .start-menu li:hover {
+      background: #000080;
+      color: white;
+    }
+    .window-container {
+      position: absolute;
+      top: 80px;
+      left: 80px;
+      display: none;
+      z-index: 10;
+    }
+    .window-body {
+      padding: 1rem;
     }
   </style>
 </head>
 <body>
-  <div class="window" style="margin: auto;">
-    <div class="title-bar">
-      <div class="title-bar-text">Joe Snedeker</div>
-      <div class="title-bar-controls">
-        <button aria-label="Minimize"></button>
-        <button aria-label="Maximize"></button>
-        <button aria-label="Close"></button>
-      </div>
-    </div>
-    <div class="window-body">
-      <div class="content">
-        <p><strong>Site Launching Soon</strong></p>
-        <a href="contact.html" target="_blank">
-          <button type="button" class="contact-button">Contact...</button>
-        </a>
-      </div>
+
+<div class="start-menu" id="startMenu">
+  <ul>
+    <li onclick="openWindow('about')">🧠 About</li>
+    <li onclick="openWindow('contact')">📬 Contact</li>
+  </ul>
+</div>
+
+<!-- About Window -->
+<div class="window window-container" id="aboutWindow" style="width: 300px;">
+  <div class="title-bar">
+    <div class="title-bar-text">About Joe</div>
+    <div class="title-bar-controls">
+      <button aria-label="Close" onclick="closeWindow('about')"></button>
     </div>
   </div>
+  <div class="window-body">
+    <p>Hello! I'm Joe Snedeker. This is my retro-style homepage.</p>
+  </div>
+</div>
+
+<!-- Contact Window -->
+<div class="window window-container" id="contactWindow" style="width: 300px; top: 180px; left: 120px;">
+  <div class="title-bar">
+    <div class="title-bar-text">Contact Joe</div>
+    <div class="title-bar-controls">
+      <button aria-label="Close" onclick="closeWindow('contact')"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <p>Reach me at <a href="mailto:joe@joesnedeker.com">joe@joesnedeker.com</a></p>
+  </div>
+</div>
+
+<div class="taskbar">
+  <button class="start-button" onclick="toggleStartMenu()">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Crystal_Project_start.png/32px-Crystal_Project_start.png" alt="JS Icon">
+    <span>Start</span>
+  </button>
+</div>
+
+<script>
+  function toggleStartMenu() {
+    const menu = document.getElementById("startMenu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+  }
+
+  function openWindow(id) {
+    document.getElementById(id + "Window").style.display = "block";
+    document.getElementById("startMenu").style.display = "none";
+  }
+
+  function closeWindow(id) {
+    document.getElementById(id + "Window").style.display = "none";
+  }
+</script>
+
 </body>
 </html>
