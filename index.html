@@ -104,7 +104,15 @@
   </style>
 </head>
 <body>
-<div class="window window-95" id="welcomeWindow" style="top: 60px; left: 240px; display: block;">
+<div class="desktop-icon" style="top: 40px; left: 40px;" onclick="openWindow('about')">
+  <img src="User%20with%20computer.ico" alt="about icon">
+  <span>About Me</span>
+</div>
+<div class="desktop-icon" style="top: 120px; left: 40px;" onclick="openWindow('contact')">
+  <img src="Contact%20Card.ico" alt="Contact Icon">
+  <span>Contact</span>
+</div>
+<div class="window window-95" id="welcomeWindow" style="top: 50%; left: 50%; transform: translate(-50%, -50%); display: block;">
   <div class="title-bar">
     <div class="title-bar-text">Welcome</div>
     <div class="title-bar-controls">
@@ -113,8 +121,8 @@
   </div>
   <div class="window-body">
     <div style="display: flex; gap: 10px; align-items: flex-start;">
-      <!-- Insert your Windows 95-style emoji icon below -->
-      <img src="assets/your-emoji-icon.ico" alt="emoji" style="width: 32px; height: 32px;">
+      <!-- Replace src with your emoji icon path -->
+      <img src="Smiley%20face.ico" alt="emoji" style="width: 32px; height: 32px;">
       <div>
         <p><strong>Welcome to Windows 97</strong></p>
         <p><em>(it's called that because it's the year I was born and Windows 97 doesn't exist... until now)</em></p>
@@ -122,17 +130,6 @@
       </div>
     </div>
   </div>
-</div>
-
-
-
-<div class="desktop-icon" style="top: 40px; left: 40px;" onclick="openWindow('about')">
-  <img src="User%20with%20computer.ico" alt="about icon">
-  <span>About Me</span>
-</div>
-<div class="desktop-icon" style="top: 120px; left: 40px;" onclick="openWindow('contact')">
-  <img src="Contact%20Card.ico" alt="Contact Icon">
-  <span>Contact</span>
 </div>
 
 <div class="start-menu" id="startMenu">
@@ -244,6 +241,7 @@
   window.z = 10;
   dragElement(document.getElementById("aboutWindow"));
   dragElement(document.getElementById("contactWindow"));
+  dragElement(document.getElementById("welcomeWindow"));
 
   function updateClock() {
     const now = new Date();
