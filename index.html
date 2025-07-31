@@ -141,8 +141,25 @@
     </div>
   </div>
   <div class="window-body">
-    <p>Email me at <a href="mailto:joe@joesnedeker.com">joe@joesnedeker.com</a></p>
-  </div>
+  <form action="mailto:joe@joesnedeker.com" method="POST" enctype="text/plain">
+    <div>
+      <label for="name">Name:</label><br>
+      <input id="name" name="name" type="text" class="input" style="width: 100%;" required>
+    </div><br>
+    <div>
+      <label for="email">Email:</label><br>
+      <input id="email" name="email" type="email" class="input" style="width: 100%;" required>
+    </div><br>
+    <div>
+      <label for="message">Message:</label><br>
+      <textarea id="message" name="message" rows="4" class="input" style="width: 100%;" required></textarea>
+    </div><br>
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+
+
 </div>
 
 <div class="taskbar">
