@@ -105,17 +105,15 @@
 </head>
 <body>
 
-<!-- Desktop Icons -->
 <div class="desktop-icon" style="top: 40px; left: 40px;" onclick="openWindow('about')">
-  <img src="https://i.imgur.com/dl28Bnf.png" alt="about icon">
+  <img src="assets/about-icon.png" alt="about icon">
   <span>About Me</span>
 </div>
 <div class="desktop-icon" style="top: 120px; left: 40px;" onclick="openWindow('contact')">
-  <img src="https://i.imgur.com/eID9h7t.png" alt="contact icon">
+  <img src="assets/contact-icon.png" alt="contact icon">
   <span>Contact</span>
 </div>
 
-<!-- Start Menu -->
 <div class="start-menu" id="startMenu">
   <ul>
     <li onclick="openWindow('about')">🧠 About</li>
@@ -123,7 +121,6 @@
   </ul>
 </div>
 
-<!-- About Window -->
 <div class="window window-95" id="aboutWindow" style="top: 100px; left: 160px;">
   <div class="title-bar">
     <div class="title-bar-text">About Joe</div>
@@ -136,7 +133,6 @@
   </div>
 </div>
 
-<!-- Contact Window -->
 <div class="window window-95" id="contactWindow" style="top: 200px; left: 240px;">
   <div class="title-bar">
     <div class="title-bar-text">Contact Joe</div>
@@ -149,11 +145,10 @@
   </div>
 </div>
 
-<!-- Taskbar -->
 <div class="taskbar">
   <div class="taskbar-left">
     <button class="start-button" onclick="toggleStartMenu()">
-      <img src="https://i.imgur.com/fAz90lO.png" alt="JS Icon">
+      <img src="assets/start-js-icon.png" alt="JS Icon">
       <span>Start</span>
     </button>
     <input class="search-box" type="text" placeholder="Welcome to JS Desktop">
