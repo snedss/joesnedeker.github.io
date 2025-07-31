@@ -112,6 +112,15 @@
   <img src="Contact%20Card.ico" alt="Contact Icon">
   <span>Contact</span>
 </div>
+  <div class="desktop-icon" style="top: 200px; left: 40px;" onclick="openWindow('minesweeper')">
+  <img src="Minesweeper.ico" alt="Minesweeper Icon">
+  <span>Minesweeper</span>
+</div>
+
+<div class="desktop-icon" style="top: 280px; left: 40px;" onclick="openWindow('snake')">
+  <img src="Snake.ico" alt="Snake Icon">
+  <span>Snake</span>
+</div>
 <div class="window window-95" id="welcomeWindow" style="top: 50%; left: 50%; transform: translate(-50%, -50%); display: block;">
   <div class="title-bar">
     <div class="title-bar-text">Welcome</div>
@@ -174,6 +183,29 @@
     </div><br>
     <button type="submit">Send</button>
   </form>
+</div>
+<div class="window window-95" id="minesweeperWindow" style="top: 150px; left: 280px; width: 260px; height: 320px;">
+  <div class="title-bar">
+    <div class="title-bar-text">Minesweeper</div>
+    <div class="title-bar-controls">
+      <button aria-label="Close" onclick="closeWindow('minesweeper')"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <iframe src="games/minesweeper.html" style="width: 100%; height: 260px; border: none;"></iframe>
+  </div>
+</div>
+
+<div class="window window-95" id="snakeWindow" style="top: 180px; left: 320px; width: 260px; height: 320px;">
+  <div class="title-bar">
+    <div class="title-bar-text">Snake</div>
+    <div class="title-bar-controls">
+      <button aria-label="Close" onclick="closeWindow('snake')"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <iframe src="games/snake.html" style="width: 100%; height: 260px; border: none;"></iframe>
+  </div>
 </div>
 
 
@@ -242,6 +274,9 @@
   dragElement(document.getElementById("aboutWindow"));
   dragElement(document.getElementById("contactWindow"));
   dragElement(document.getElementById("welcomeWindow"));
+  dragElement(document.getElementById("minesweeperWindow"));
+  dragElement(document.getElementById("snakeWindow"));
+
 
   function updateClock() {
     const now = new Date();
