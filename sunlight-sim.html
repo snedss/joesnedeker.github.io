@@ -13,11 +13,44 @@
   #rain-canvas, #stars { position: absolute; inset: 0; pointer-events: none; }
   #clouds { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
   .cloud { position: absolute; border-radius: 50%; filter: blur(22px); transition: opacity 4s ease, background 4s ease; }
-  #info { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; user-select: none; white-space: nowrap; }
+  #fog-overlay { position: absolute; inset: 0; pointer-events: none; transition: opacity 3s ease; }
+
+  #info { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; user-select: none; white-space: nowrap; z-index: 20; }
   #time-display { font-size: 15px; font-weight: 500; letter-spacing: 0.08em; opacity: 0.8; transition: color 2s ease; }
   #phase-display { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.5; margin-top: 3px; transition: color 2s ease; }
   #weather-display { font-size: 11px; letter-spacing: 0.08em; opacity: 0.55; margin-top: 2px; transition: color 2s ease; }
-  #fog-overlay { position: absolute; inset: 0; pointer-events: none; transition: opacity 3s ease; }
+
+  #radar-btn {
+    position: absolute; bottom: 24px; right: 24px; z-index: 30;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px; color: #fff; font-size: 11px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 7px 14px; cursor: pointer; backdrop-filter: blur(6px);
+    transition: background 0.2s ease;
+  }
+  #radar-btn:hover { background: rgba(255,255,255,0.25); }
+
+  #radar-panel {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 0; overflow: hidden; z-index: 25;
+    transition: height 0.4s cubic-bezier(0.4,0,0.2,1);
+    background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
+  }
+  #radar-panel.open { height: 55%; }
+  #radar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px 6px;
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+  #radar-header span:first-child { color: rgba(255,255,255,0.65); font-weight: 500; }
+  #radar-frame {
+    margin: 0 12px 12px; border-radius: 8px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+    position: absolute; top: 36px; left: 12px; right: 12px; bottom: 12px;
+  }
+  #radar-frame iframe { width: 100%; height: 100%; border: none; }
 </style>
 </head>
 <body>
@@ -34,18 +67,58 @@
   </div>
   <div id="sun-moon"></div>
   <div id="horizon-glow"></div>
+
+  <div id="radar-panel">
+    <div id="radar-header">
+      <span>Philadelphia Radar</span>
+      <span>NWS · KDIX</span>
+    </div>
+    <div id="radar-frame">
+      <iframe id="radar-iframe" src="about:blank"></iframe>
+      <div id="radar-fallback" style="display:none;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+        <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.4);">Radar unavailable in preview</div>
+        <a href="https://www.rainviewer.com/map.html?loc=39.9526,-75.1652,8&oFa=0&oC=0&oU=0&oCS=1&oF=0&oAP=0&rmt=4&c=3&o=83&lm=0&layer=radar&sm=1&sn=1" target="_blank" style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);text-decoration:none;border:1px solid rgba(255,255,255,0.25);padding:7px 16px;border-radius:20px;">Open Radar ↗</a>
+      </div>
+    </div>
+  </div>
+
   <div id="info">
     <div id="time-display"></div>
     <div id="phase-display"></div>
     <div id="weather-display"></div>
   </div>
+
+  <button id="radar-btn">⦿ Radar</button>
 </div>
 
 <script>
+// --- Radar toggle ---
+let radarOpen = false;
+let radarLoaded = false;
+document.getElementById('radar-btn').addEventListener('click', function() {
+  radarOpen = !radarOpen;
+  const panel = document.getElementById('radar-panel');
+  const btn = document.getElementById('radar-btn');
+  if (radarOpen) {
+    if (!radarLoaded) {
+      const iframe = document.getElementById('radar-iframe');
+      iframe.src = 'https://www.rainviewer.com/map.html?loc=39.9526,-75.1652,8&oFa=0&oC=0&oU=0&oCS=1&oF=0&oAP=0&rmt=4&c=3&o=83&lm=0&layer=radar&sm=1&sn=1';
+      iframe.onerror = () => {
+        iframe.style.display = 'none';
+        document.getElementById('radar-fallback').style.display = 'flex';
+      };
+      radarLoaded = true;
+    }
+    panel.classList.add('open');
+    btn.textContent = '✕ Close';
+  } else {
+    panel.classList.remove('open');
+    btn.textContent = '⦿ Radar';
+  }
+});
+
 // --- Config ---
 const LAT = 39.9526, LON = -75.1652;
-
-// --- State ---
 let weatherState = { cloudCover: 0, isRain: false, isSnow: false, isFog: false, isThunder: false, temp: null, desc: '' };
 let rainDrops = [], snowFlakes = [];
 
@@ -63,7 +136,7 @@ function drawStars(op) {
   stars.forEach(s => { sCtx.beginPath(); sCtx.arc(s.x,s.y,s.r,0,Math.PI*2); sCtx.fillStyle=`rgba(255,255,255,${s.a*op})`; sCtx.fill(); });
 }
 
-// --- Rain/Snow ---
+// --- Precip ---
 const pCanvas = document.getElementById('rain-canvas');
 const pCtx = pCanvas.getContext('2d');
 function initPCanvas() { pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; }
@@ -74,7 +147,6 @@ function spawnRain(n) {
 function spawnSnow(n) {
   for (let i=0;i<n;i++) snowFlakes.push({ x:Math.random()*pCanvas.width, y:Math.random()*pCanvas.height, r:Math.random()*2.5+1, speed:Math.random()*1.5+0.5, drift:Math.random()*0.8-0.4, op:Math.random()*0.6+0.3 });
 }
-
 function animatePrecip() {
   pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
   if (weatherState.isRain || weatherState.isThunder) {
@@ -86,7 +158,6 @@ function animatePrecip() {
       if (d.y>pCanvas.height||d.x>pCanvas.width) { d.y=-20; d.x=Math.random()*pCanvas.width; }
     });
   } else { rainDrops = []; }
-
   if (weatherState.isSnow) {
     if (snowFlakes.length < 150) spawnSnow(150 - snowFlakes.length);
     snowFlakes.forEach(f => {
@@ -96,25 +167,22 @@ function animatePrecip() {
       if (f.y>pCanvas.height) { f.y=-10; f.x=Math.random()*pCanvas.width; }
     });
   } else { snowFlakes = []; }
-
   requestAnimationFrame(animatePrecip);
 }
 
-// --- Weather fetch ---
-// WMO weather code interpreter
+// --- Weather ---
 function interpretWMO(code) {
-  if (code === 0) return { desc: 'clear', isRain:false, isSnow:false, isFog:false, isThunder:false };
-  if (code <= 2) return { desc: 'partly cloudy', isRain:false, isSnow:false, isFog:false, isThunder:false };
-  if (code === 3) return { desc: 'overcast', isRain:false, isSnow:false, isFog:false, isThunder:false };
-  if (code <= 49) return { desc: 'foggy', isRain:false, isSnow:false, isFog:true, isThunder:false };
-  if (code <= 67) return { desc: 'rain', isRain:true, isSnow:false, isFog:false, isThunder:false };
-  if (code <= 77) return { desc: 'snow', isRain:false, isSnow:true, isFog:false, isThunder:false };
-  if (code <= 82) return { desc: 'rain showers', isRain:true, isSnow:false, isFog:false, isThunder:false };
-  if (code <= 86) return { desc: 'snow showers', isRain:false, isSnow:true, isFog:false, isThunder:false };
-  if (code <= 99) return { desc: 'thunderstorm', isRain:true, isSnow:false, isFog:false, isThunder:true };
-  return { desc: 'cloudy', isRain:false, isSnow:false, isFog:false, isThunder:false };
+  if (code === 0) return { desc:'clear', isRain:false, isSnow:false, isFog:false, isThunder:false };
+  if (code <= 2)  return { desc:'partly cloudy', isRain:false, isSnow:false, isFog:false, isThunder:false };
+  if (code === 3) return { desc:'overcast', isRain:false, isSnow:false, isFog:false, isThunder:false };
+  if (code <= 49) return { desc:'foggy', isRain:false, isSnow:false, isFog:true, isThunder:false };
+  if (code <= 67) return { desc:'rain', isRain:true, isSnow:false, isFog:false, isThunder:false };
+  if (code <= 77) return { desc:'snow', isRain:false, isSnow:true, isFog:false, isThunder:false };
+  if (code <= 82) return { desc:'rain showers', isRain:true, isSnow:false, isFog:false, isThunder:false };
+  if (code <= 86) return { desc:'snow showers', isRain:false, isSnow:true, isFog:false, isThunder:false };
+  if (code <= 99) return { desc:'thunderstorm', isRain:true, isSnow:false, isFog:false, isThunder:true };
+  return { desc:'cloudy', isRain:false, isSnow:false, isFog:false, isThunder:false };
 }
-
 async function fetchWeather() {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,cloud_cover,weather_code&temperature_unit=fahrenheit&timezone=America%2FNew_York`;
@@ -122,15 +190,15 @@ async function fetchWeather() {
     const data = await res.json();
     const c = data.current;
     const interp = interpretWMO(c.weather_code);
-    weatherState = { ...weatherState, ...interp, cloudCover: c.cloud_cover / 100, temp: Math.round(c.temperature_2m) };
+    weatherState = { ...weatherState, ...interp, cloudCover: c.cloud_cover/100, temp: Math.round(c.temperature_2m) };
   } catch(e) { console.warn('Weather fetch failed', e); }
 }
 
-// --- Color helpers ---
-function lerp(a,b,t) { return a+(b-a)*t; }
-function parseHex(h) { return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]; }
+// --- Helpers ---
+const lerp = (a,b,t) => a+(b-a)*t;
+const parseHex = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
 function lerpColor(c1,c2,t) {
-  const [r1,g1,b1]=parseHex(c1), [r2,g2,b2]=parseHex(c2);
+  const [r1,g1,b1]=parseHex(c1),[r2,g2,b2]=parseHex(c2);
   return `rgb(${Math.round(lerp(r1,r2,t))},${Math.round(lerp(g1,g2,t))},${Math.round(lerp(b1,b2,t))})`;
 }
 
@@ -172,10 +240,10 @@ function getInterp(frames, hf) {
   for (let i=0;i<frames.length-1;i++) {
     if (hf>=frames[i].h && hf<frames[i+1].h) {
       const t=(hf-frames[i].h)/(frames[i+1].h-frames[i].h);
-      return {a:frames[i], b:frames[i+1], t};
+      return {a:frames[i],b:frames[i+1],t};
     }
   }
-  return {a:frames[frames.length-1], b:frames[frames.length-1], t:0};
+  return {a:frames[frames.length-1],b:frames[frames.length-1],t:0};
 }
 
 function formatTime(d) {
@@ -183,7 +251,6 @@ function formatTime(d) {
   h=h%12||12; return `${h}:${String(m).padStart(2,'0')} ${ap}`;
 }
 
-// Thunder flash
 let lastFlash = 0;
 function maybeThunder(hf) {
   if (!weatherState.isThunder) return;
@@ -201,32 +268,28 @@ function maybeThunder(hf) {
 function update() {
   const now = new Date();
   const hf = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600;
-  const cc = weatherState.cloudCover; // 0–1
+  const cc = weatherState.cloudCover;
+  const isNight = hf<6||hf>20;
 
-  // Sky
-  const {a:ka, b:kb, t:kt} = getInterp(skyFrames, hf);
-  let topCol = lerpColor(ka.top, kb.top, kt);
-  let botCol = lerpColor(ka.bot, kb.bot, kt);
-  const textCol = lerpColor(ka.text, kb.text, kt);
-  const phase = kt < 0.5 ? ka.phase : kb.phase;
+  const {a:ka,b:kb,t:kt} = getInterp(skyFrames, hf);
+  let topCol = lerpColor(ka.top,kb.top,kt);
+  let botCol = lerpColor(ka.bot,kb.bot,kt);
+  const textCol = lerpColor(ka.text,kb.text,kt);
+  const phase = kt<0.5?ka.phase:kb.phase;
 
-  // Desaturate sky based on cloud cover
   if (cc > 0) {
-    const isNight = hf < 6 || hf > 20;
-    const cloudTop = isNight ? '#1a1a22' : weatherState.isThunder ? '#2a2a35' : '#7a8a9a';
-    const cloudBot = isNight ? '#22222e' : weatherState.isThunder ? '#353545' : '#a0aab5';
-    topCol = lerpColor(topCol, cloudTop, cc * 0.85);
-    botCol = lerpColor(botCol, cloudBot, cc * 0.85);
+    const cloudTop = isNight?'#1a1a22':weatherState.isThunder?'#2a2a35':'#7a8a9a';
+    const cloudBot = isNight?'#22222e':weatherState.isThunder?'#353545':'#a0aab5';
+    topCol = lerpColor(topCol,cloudTop,cc*0.85);
+    botCol = lerpColor(botCol,cloudBot,cc*0.85);
   }
-
   document.getElementById('sky').style.background = `linear-gradient(to bottom, ${topCol} 0%, ${botCol} 100%)`;
 
-  // Sun/moon — hide behind clouds
-  const {a:ba, b:bb, t:bt} = getInterp(bodyFrames, hf);
+  const {a:ba,b:bb,t:bt} = getInterp(bodyFrames, hf);
   const bx=lerp(ba.x,bb.x,bt), by=lerp(ba.y,bb.y,bt), bsz=lerp(ba.sz,bb.sz,bt);
   const bcol=lerpColor(ba.col,bb.col,bt), starOp=lerp(ba.so,bb.so,bt);
   const isMoon = bt<0.5?ba.moon:bb.moon;
-  const bodyOp = Math.max(0, 1 - cc * 1.4);
+  const bodyOp = Math.max(0,1-cc*1.4);
 
   const sm = document.getElementById('sun-moon');
   sm.style.left=`calc(${bx}% - ${bsz/2}px)`; sm.style.top=`calc(${by}% - ${bsz/2}px)`;
@@ -241,14 +304,12 @@ function update() {
     sm.style.filter='blur(0.5px)';
   }
 
-  // Stars (dimmed by cloud cover)
-  drawStars(starOp * (1 - cc));
+  drawStars(starOp*(1-cc));
 
-  // Horizon glow (suppressed by clouds)
   const hg = document.getElementById('horizon-glow');
   const isGolden = (hf>=5.5&&hf<=8)||(hf>=17&&hf<=20);
-  const glowStrength = 1 - cc * 0.9;
-  if (isGolden && glowStrength > 0.05) {
+  const glowStrength = 1-cc*0.9;
+  if (isGolden && glowStrength>0.05) {
     const gc = hf<12?`rgba(255,130,40,${0.45*glowStrength})`:`rgba(255,100,20,${0.45*glowStrength})`;
     hg.style.background=`linear-gradient(to top, ${gc}, transparent)`;
   } else if (hf>=20||hf<5) {
@@ -257,50 +318,37 @@ function update() {
     hg.style.background='linear-gradient(to top, rgba(120,180,255,0.1), transparent)';
   }
 
-  // Clouds
-  const cloudIds = ['c1','c2','c3','c4','c5'];
-  const baseOps = [0.18,0.13,0.16,0.14,0.12];
-  const isNight = hf<6||hf>20;
+  const cloudIds=['c1','c2','c3','c4','c5'];
+  const baseOps=[0.18,0.13,0.16,0.14,0.12];
   cloudIds.forEach((id,i) => {
-    const el = document.getElementById(id);
-    if (cc > 0.05) {
-      const col = isNight ? 'rgba(60,60,80,1)' : weatherState.isThunder ? 'rgba(50,50,65,1)' : 'rgba(255,255,255,1)';
-      el.style.background = col;
-      const visible = i < Math.ceil(cc * 5);
-      el.style.opacity = visible ? (baseOps[i] + cc * 0.55) : 0;
-    } else {
-      el.style.opacity = 0;
-    }
+    const el=document.getElementById(id);
+    if (cc>0.05) {
+      el.style.background=isNight?'rgba(60,60,80,1)':weatherState.isThunder?'rgba(50,50,65,1)':'rgba(255,255,255,1)';
+      el.style.opacity=i<Math.ceil(cc*5)?(baseOps[i]+cc*0.55):0;
+    } else { el.style.opacity=0; }
   });
 
-  // Fog overlay
   const fog = document.getElementById('fog-overlay');
   if (weatherState.isFog) {
-    fog.style.background = 'radial-gradient(ellipse at 50% 80%, rgba(200,210,220,0.55) 0%, rgba(180,190,205,0.3) 60%, transparent 100%)';
-    fog.style.opacity = 1;
-  } else {
-    fog.style.opacity = 0;
-  }
+    fog.style.background='radial-gradient(ellipse at 50% 80%, rgba(200,210,220,0.55) 0%, rgba(180,190,205,0.3) 60%, transparent 100%)';
+    fog.style.opacity=1;
+  } else { fog.style.opacity=0; }
 
-  // Thunder
   maybeThunder(hf);
 
-  // Info text
-  document.getElementById('time-display').style.color = textCol;
-  document.getElementById('phase-display').style.color = textCol;
-  document.getElementById('weather-display').style.color = textCol;
-  document.getElementById('time-display').textContent = formatTime(now);
-  document.getElementById('phase-display').textContent = phase;
-  const tempStr = weatherState.temp !== null ? ` · ${weatherState.temp}°F` : '';
-  document.getElementById('weather-display').textContent = weatherState.desc ? `${weatherState.desc}${tempStr}` : '';
+  document.getElementById('time-display').style.color=textCol;
+  document.getElementById('phase-display').style.color=textCol;
+  document.getElementById('weather-display').style.color=textCol;
+  document.getElementById('time-display').textContent=formatTime(now);
+  document.getElementById('phase-display').textContent=phase;
+  const tempStr=weatherState.temp!==null?` · ${weatherState.temp}°F`:'';
+  document.getElementById('weather-display').textContent=weatherState.desc?`${weatherState.desc}${tempStr}`:'';
 }
 
-// --- Init ---
-initStars();
-initPCanvas();
-window.addEventListener('resize', () => { initStars(); initPCanvas(); });
+initStars(); initPCanvas();
+window.addEventListener('resize', ()=>{ initStars(); initPCanvas(); });
 fetchWeather();
-setInterval(fetchWeather, 10 * 60 * 1000); // refresh weather every 10 min
+setInterval(fetchWeather, 10*60*1000);
 animatePrecip();
 setInterval(update, 2000);
 update();
