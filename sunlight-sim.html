@@ -139,7 +139,7 @@
     <div class="cloud" id="c4" style="width:280px;height:85px;top:15%;left:70%"></div>
     <div class="cloud" id="c5" style="width:240px;height:80px;top:38%;left:60%"></div>
   </div>
-  <div id="sun-moon"></div>
+  <canvas id="sun-moon" style="position:absolute;pointer-events:none;"></canvas>
   <div id="horizon-glow"></div>
   <div id="radar-panel">
     <div id="radar-header">
@@ -238,9 +238,9 @@ function initRadar() {
       const mapEl = document.getElementById('radar-map');
       mapEl.style.position='absolute'; mapEl.style.inset='0';
       mapEl.style.width='100%'; mapEl.style.height='100%';
-      leafletMap = L.map(mapEl, { zoomControl:true, attributionControl:false, preferCanvas:true, minZoom:3, maxZoom:12 })
+      leafletMap = L.map(mapEl, { zoomControl:true, attributionControl:false, preferCanvas:true, minZoom:4, maxZoom:10 })
         .setView([LAT, LON], 7);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom:12 }).addTo(leafletMap);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains:'abcd', minZoom:4, maxZoom:10 }).addTo(leafletMap);
       fetch('https://api.rainviewer.com/public/weather-maps.json')
         .then(r=>r.json())
         .then(data => {
@@ -380,7 +380,53 @@ function update(){
   const{a:ba,b:bb,t:bt}=getInterp(bodyFrames,hf);
   const bx=lerp(ba.x,bb.x,bt),by=lerp(ba.y,bb.y,bt),bsz=lerp(ba.sz,bb.sz,bt),bcol=lerpColor(ba.col,bb.col,bt),starOp=lerp(ba.so,bb.so,bt);
   const isMoon=bt<0.5?ba.moon:bb.moon, bodyOp=Math.max(0,1-cc*1.4);
-  const sm=document.getElementById('sun-moon');
+  const smCanvas = document.getElementById('sun-moon');
+  const smCtx = smCanvas.getContext('2d');
+
+  function drawBody(bx, by, bsz, bcol, isMoon, bodyOp) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = window.innerWidth, h = window.innerHeight;
+    smCanvas.width = w * dpr; smCanvas.height = h * dpr;
+    smCanvas.style.width = w + 'px'; smCanvas.style.height = h + 'px';
+    smCanvas.style.position = 'absolute'; smCanvas.style.inset = '0';
+    smCtx.clearRect(0, 0, smCanvas.width, smCanvas.height);
+    smCtx.save();
+    smCtx.scale(dpr, dpr);
+    smCtx.globalAlpha = bodyOp;
+    const cx = (bx / 100) * w;
+    const cy = (by / 100) * h;
+    const r = bsz / 2;
+    if (isMoon) {
+      const [mr, mg, mb] = parseHex(bcol);
+      smCtx.shadowColor = bcol;
+      smCtx.shadowBlur = r * 1.2;
+      smCtx.beginPath();
+      smCtx.arc(cx, cy, r, 0, Math.PI * 2);
+      smCtx.fillStyle = bcol;
+      smCtx.fill();
+    } else {
+      // Outer glow layers
+      const glow1 = smCtx.createRadialGradient(cx, cy, r*0.5, cx, cy, r*4);
+      glow1.addColorStop(0, `rgba(255,160,40,0.25)`);
+      glow1.addColorStop(1, `rgba(255,160,40,0)`);
+      smCtx.beginPath(); smCtx.arc(cx, cy, r*4, 0, Math.PI*2);
+      smCtx.fillStyle = glow1; smCtx.fill();
+
+      const glow2 = smCtx.createRadialGradient(cx, cy, r*0.3, cx, cy, r*2);
+      glow2.addColorStop(0, `rgba(255,200,80,0.5)`);
+      glow2.addColorStop(1, `rgba(255,200,80,0)`);
+      smCtx.beginPath(); smCtx.arc(cx, cy, r*2, 0, Math.PI*2);
+      smCtx.fillStyle = glow2; smCtx.fill();
+
+      // Sun disc
+      const disc = smCtx.createRadialGradient(cx - r*0.2, cy - r*0.2, r*0.1, cx, cy, r);
+      disc.addColorStop(0, '#fffde0');
+      disc.addColorStop(1, bcol);
+      smCtx.beginPath(); smCtx.arc(cx, cy, r, 0, Math.PI*2);
+      smCtx.fillStyle = disc; smCtx.fill();
+    }
+    smCtx.restore();
+  }
   sm.style.left=`calc(${bx}% - ${bsz/2}px)`;sm.style.top=`calc(${by}% - ${bsz/2}px)`;sm.style.width=sm.style.height=`${bsz}px`;sm.style.opacity=bodyOp;
   if(isMoon){sm.style.background=bcol;sm.style.boxShadow=`0 0 ${bsz*0.6}px ${bcol}, 0 0 ${bsz*1.2}px rgba(220,210,180,0.3)`;sm.style.filter='blur(1px)';}
   else{sm.style.background=`radial-gradient(circle at 40% 38%, #fffde0, ${bcol})`;sm.style.boxShadow=`0 0 ${bsz}px ${bcol}, 0 0 ${bsz*2}px rgba(255,200,80,0.5), 0 0 ${bsz*4}px rgba(255,160,40,0.2)`;sm.style.filter='blur(0.5px)';}
