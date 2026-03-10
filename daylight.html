@@ -47,29 +47,28 @@
   #forecast-btn { left:24px; }
 
   /* Panels */
-  .slide-panel { position:absolute; bottom:0; left:0; right:0; height:0; overflow:hidden; z-index:25; transition:height 0.4s cubic-bezier(0.4,0,0.2,1); background:rgba(0,0,0,0.72); backdrop-filter:blur(8px); }
-  .slide-panel.open { height:55%; }
-  .panel-header { display:flex; align-items:center; justify-content:space-between; padding:10px 18px 6px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:rgba(255,255,255,0.4); }
-  .panel-header span:first-child { color:rgba(255,255,255,0.65); font-weight:500; }
-  .panel-body { position:absolute; top:36px; left:12px; right:12px; bottom:12px; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); }
+  .slide-panel { position:absolute; bottom:0; left:0; right:0; height:0; overflow:hidden; z-index:25; transition:height 0.4s cubic-bezier(0.4,0,0.2,1); background:rgba(0,0,0,0.45); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+  .slide-panel.open { height:52%; }
+  .panel-header { display:flex; align-items:center; justify-content:space-between; padding:12px 20px 4px; font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.25); }
+  .panel-header span:first-child { color:rgba(255,255,255,0.5); font-weight:500; letter-spacing:0.14em; }
+  .panel-body { position:absolute; top:34px; left:0; right:0; bottom:0; overflow:hidden; }
 
   /* Radar */
   #radar-map { width:100%; height:100%; background:#0a0f1a; }
-  #radar-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.3); z-index:10; background:#0a0f1a; }
+  #radar-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.3); z-index:10; background:#0a0f1a; border-radius:0; }
   .leaflet-control-attribution, .leaflet-bottom.leaflet-right { display:none !important; }
 
   /* Forecast */
-  #forecast-body { background:#0a0f1a; display:flex; flex-direction:column; }
-  #forecast-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.3); background:#0a0f1a; z-index:10; }
-  #forecast-days { display:flex; height:100%; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
+  #forecast-body { background:transparent; display:flex; flex-direction:column; }
+  #forecast-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.3); background:transparent; z-index:10; }
+  #forecast-days { display:flex; height:100%; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; padding:0 8px; }
   #forecast-days::-webkit-scrollbar { display:none; }
-  .forecast-day { flex:1; min-width:80px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:12px 8px; border-right:1px solid rgba(255,255,255,0.06); }
-  .forecast-day:last-child { border-right:none; }
-  .fc-dow { font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.4); }
-  .fc-icon { font-size:22px; line-height:1; }
-  .fc-hi { font-size:16px; font-weight:400; color:rgba(255,255,255,0.85); }
-  .fc-lo { font-size:12px; color:rgba(255,255,255,0.35); }
-  .fc-desc { font-size:9px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.25); text-align:center; line-height:1.4; max-width:70px; }
+  .forecast-day { flex:1; min-width:72px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:8px; }
+  .fc-dow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); }
+  .fc-icon { font-size:20px; line-height:1; opacity:0.9; }
+  .fc-hi { font-size:18px; font-weight:300; color:rgba(255,255,255,0.9); letter-spacing:-0.01em; }
+  .fc-lo { font-size:11px; font-weight:300; color:rgba(255,255,255,0.3); }
+  .fc-desc { font-size:8px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.2); text-align:center; line-height:1.5; max-width:64px; }
 </style>
 </head>
 <body>
@@ -386,30 +385,26 @@ function getInterp(frames,hf){
 function formatTime(d){let h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM';h=h%12||12;return`${h}:${String(m).padStart(2,'0')} ${ap}`;}
 
 // --- Lunar phase ---
-// Returns 0=new, 0.25=first quarter, 0.5=full, 0.75=last quarter, 1=new
 function getLunarPhase() {
-  const known = new Date('2000-01-06T18:14:00Z'); // known new moon
+  const known = new Date('2000-01-06T18:14:00Z');
   const synodic = 29.53058867;
-  const now = new Date();
-  const diff = (now - known) / (1000 * 60 * 60 * 24);
+  const diff = (new Date() - known) / 86400000;
   return ((diff % synodic) + synodic) % synodic / synodic;
 }
 
 function drawMoon(el, sz, col) {
-  const phase = getLunarPhase(); // 0–1
+  const phase = getLunarPhase();
   const dpr = window.devicePixelRatio || 1;
 
-  // Replace div with canvas if needed
   let canvas = el._moonCanvas;
   if (!canvas) {
     canvas = document.createElement('canvas');
-    canvas.style.cssText = 'position:absolute;border-radius:50%;';
+    canvas.style.cssText = 'position:absolute;';
     el.parentNode.insertBefore(canvas, el);
     el.style.display = 'none';
     el._moonCanvas = canvas;
   }
 
-  // Position canvas same as el
   canvas.style.left = el.style.left;
   canvas.style.top = el.style.top;
   canvas.style.width = sz + 'px';
@@ -423,68 +418,72 @@ function drawMoon(el, sz, col) {
   ctx.save();
   ctx.scale(dpr, dpr);
 
-  const cx = sz / 2, cy = sz / 2, r = sz / 2 - 1;
+  const cx = sz / 2, cy = sz / 2, r = (sz / 2) - 2;
 
-  // Glow
-  const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 2.2);
-  glow.addColorStop(0, 'rgba(220,210,160,0.18)');
-  glow.addColorStop(1, 'rgba(220,210,160,0)');
-  ctx.beginPath(); ctx.arc(cx, cy, r * 2.2, 0, Math.PI * 2);
+  // Outer glow
+  const glow = ctx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r * 2.5);
+  glow.addColorStop(0, 'rgba(230,220,170,0.15)');
+  glow.addColorStop(1, 'rgba(230,220,170,0)');
+  ctx.beginPath(); ctx.arc(cx, cy, r * 2.5, 0, Math.PI * 2);
   ctx.fillStyle = glow; ctx.fill();
 
-  // Clip to circle
+  // waxing = 0..0.5, waning = 0.5..1
+  // illumination fraction: 0=new, 1=full
+  const waxing = phase <= 0.5;
+  const illum = waxing ? phase * 2 : 2 - phase * 2;
+
+  // Draw using pixel-by-pixel approach for clean terminator
+  // We'll use an offscreen approach: draw dark disk, then composite lit portion
+  // Clip all drawing to the moon circle
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
 
-  // Dark side base
+  // 1. Fill entire circle with dark (night side)
+  const darkGrad = ctx.createRadialGradient(cx + r*0.1, cy - r*0.1, r*0.05, cx, cy, r);
+  darkGrad.addColorStop(0, '#2a2a3e');
+  darkGrad.addColorStop(1, '#0d0d1a');
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = '#1a1a2e'; ctx.fill();
+  ctx.fillStyle = darkGrad; ctx.fill();
 
-  // Lit side using phase geometry
-  // phase: 0=new, 0.5=full, waxing 0–0.5, waning 0.5–1
-  const illum = phase <= 0.5 ? phase * 2 : (1 - phase) * 2; // 0=dark, 1=full
-  const waxing = phase < 0.5;
+  // 2. Overlay lit side
+  if (illum > 0.01) {
+    const litGrad = ctx.createRadialGradient(cx - r*0.1, cy - r*0.15, r*0.05, cx, cy, r);
+    litGrad.addColorStop(0, '#fffef0');
+    litGrad.addColorStop(0.45, '#e8d890');
+    litGrad.addColorStop(1, '#b8a050');
 
-  ctx.save();
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+    // terminator x-radius: cos(illum * pi/2) scaled
+    // at illum=0: terminator radius = r (new, all dark)
+    // at illum=0.5: terminator radius = 0 (quarter, straight line)  
+    // at illum=1: terminator radius = r (full, all lit)
+    const tR = r * Math.abs(Math.cos(illum * Math.PI));
 
-  // Draw lit hemisphere
-  ctx.beginPath();
-  // The terminator: ellipse with x-radius scaled by cos(phase angle)
-  const angle = phase * Math.PI * 2; // 0 to 2pi
-  // x scale of terminator ellipse: cos of phase angle
-  // waxing: lit on right, waning: lit on left
-  const termX = Math.cos(angle); // -1 to 1
-
-  if (illum < 0.01) {
-    // New moon — all dark, already done
-  } else if (illum > 0.99) {
-    // Full moon
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    const moonGrad = ctx.createRadialGradient(cx - r*0.15, cy - r*0.15, r*0.1, cx, cy, r);
-    moonGrad.addColorStop(0, '#fffce8');
-    moonGrad.addColorStop(0.5, '#e8d898');
-    moonGrad.addColorStop(1, '#c8b868');
-    ctx.fillStyle = moonGrad; ctx.fill();
-  } else {
-    // Draw lit half as semicircle + terminator ellipse
+    ctx.save();
     ctx.beginPath();
     if (waxing) {
-      // lit on right side
-      ctx.arc(cx, cy, r, -Math.PI/2, Math.PI/2); // right semicircle
-      ctx.ellipse(cx, cy, r * Math.abs(termX), r, 0, Math.PI/2, -Math.PI/2, !( termX > 0));
+      // Lit on right: right semicircle + terminator ellipse curving inward/outward
+      ctx.arc(cx, cy, r, -Math.PI/2, Math.PI/2, false);
+      if (illum <= 0.5) {
+        // crescent: terminator curves back left
+        ctx.ellipse(cx, cy, tR, r, 0, Math.PI/2, -Math.PI/2, false);
+      } else {
+        // gibbous: terminator curves further right
+        ctx.ellipse(cx, cy, tR, r, 0, Math.PI/2, -Math.PI/2, true);
+      }
     } else {
-      // lit on left side
-      ctx.arc(cx, cy, r, Math.PI/2, -Math.PI/2); // left semicircle
-      ctx.ellipse(cx, cy, r * Math.abs(termX), r, 0, -Math.PI/2, Math.PI/2, !(termX < 0));
+      // Lit on left: left semicircle
+      ctx.arc(cx, cy, r, Math.PI/2, -Math.PI/2, false);
+      if (illum <= 0.5) {
+        ctx.ellipse(cx, cy, tR, r, 0, -Math.PI/2, Math.PI/2, false);
+      } else {
+        ctx.ellipse(cx, cy, tR, r, 0, -Math.PI/2, Math.PI/2, true);
+      }
     }
     ctx.closePath();
-    const moonGrad = ctx.createRadialGradient(cx, cy, r*0.1, cx, cy, r);
-    moonGrad.addColorStop(0, '#fffce0');
-    moonGrad.addColorStop(0.6, '#e0c878');
-    moonGrad.addColorStop(1, '#b89848');
-    ctx.fillStyle = moonGrad; ctx.fill();
+    ctx.fillStyle = litGrad;
+    ctx.fill();
+    ctx.restore();
   }
-  ctx.restore();
+
   ctx.restore();
 }
 
