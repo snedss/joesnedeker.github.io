@@ -296,7 +296,7 @@ function renderMoon(bx,by,sz,opacity){
   if(opacity<=0)return;
   const cx=bx/100*w, cy=by/100*h, r=sz/2;
   const phase=lunarPhase();
-  const illum=phase<=0.5?phase*2:(1-phase)*2; // 0=new,1=full
+  const illum=phase<=0.5?phase*2:(1-phase)*2; // 0=new, 1=full
   const waxing=phase<0.5;
 
   mX.save();
@@ -304,60 +304,59 @@ function renderMoon(bx,by,sz,opacity){
 
   // Glow
   const glow=mX.createRadialGradient(cx,cy,r*0.8,cx,cy,r*3.5);
-  glow.addColorStop(0,`rgba(220,208,160,${0.1+illum*0.1})`);
+  glow.addColorStop(0,`rgba(220,208,160,${0.08+illum*0.13})`);
   glow.addColorStop(1,'rgba(220,208,160,0)');
   mX.beginPath();mX.arc(cx,cy,r*3.5,0,Math.PI*2);mX.fillStyle=glow;mX.fill();
 
+  // Use DPR-aware offscreen canvas so it's sharp on retina
+  const dpr=window.devicePixelRatio||1;
+  const pad=4;
+  const dia=Math.ceil(r*2)+pad*2;
+  const off=document.createElement('canvas');
+  off.width=off.height=dia*dpr;
+  const ox=off.getContext('2d');
+
+  const img=ox.createImageData(dia*dpr,dia*dpr);
+  const D=img.data;
+  const cr=r*dpr, cc=dia*dpr/2;
+
+  for(let py=0;py<dia*dpr;py++){
+    for(let px=0;px<dia*dpr;px++){
+      const nx=(px-cc)/cr, ny=(py-cc)/cr;
+      const d2=nx*nx+ny*ny;
+      if(d2>=1)continue;
+      const nz=Math.sqrt(1-d2);
+
+      // Light angle: illum=1 → light head-on (lx=0), illum=0 → light 90° to side
+      // waxing: lit on right (+x), waning: lit on left (-x)
+      const angle=(1-illum)*Math.PI*0.48;
+      const lx=(waxing?1:-1)*Math.sin(angle);
+      const lz=Math.cos(angle);
+      const dot=nx*lx+nz*lz;
+
+      // Soft terminator with smoothstep over a moderate band
+      const s=0.25;
+      let lit=Math.max(0,Math.min(1,(dot+s)/(s*2)));
+      lit=lit*lit*(3-2*lit);
+
+      // Limb darkening
+      const limb=nz*0.55+0.45;
+      const f=lit*limb;
+
+      // Lit: warm cream. Unlit: very dark blue (earthshine)
+      const i=(py*dia*dpr+px)*4;
+      D[i  ]=Math.round(248*f+10*(1-f));
+      D[i+1]=Math.round(238*f+12*(1-f));
+      D[i+2]=Math.round(185*f+28*(1-f));
+      D[i+3]=255;
+    }
+  }
+  ox.putImageData(img,0,0);
+
   mX.save();
   mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
-
-  // 1. Dark base (earthshine — very faint, not black)
-  const darkGrad=mX.createRadialGradient(cx-r*0.1,cy-r*0.15,0,cx,cy,r);
-  darkGrad.addColorStop(0,'#1a1e32');
-  darkGrad.addColorStop(1,'#0c0f1e');
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=darkGrad;mX.fill();
-
-  // 2. Lit surface — paint the illuminated portion using path geometry
-  //    Terminator is an ellipse whose x-radius scales with illumination:
-  //    illum=0: ellipse x=r (semicircle, dark half), illum=1: ellipse x=0 (full disc lit)
-  //    We draw the lit region as a path: one semicircle arc + one ellipse arc
-  const litGrad=mX.createRadialGradient(cx-r*0.08,cy-r*0.12,r*0.05,cx,cy,r);
-  litGrad.addColorStop(0,'#fefce8');
-  litGrad.addColorStop(0.3,'#f0e8c0');
-  litGrad.addColorStop(0.7,'#d4c078');
-  litGrad.addColorStop(1,'#a07838');
-  mX.fillStyle=litGrad;
-
-  // Terminator ellipse x-radius: 0 at full, r at new, negative flips which side is lit
-  const tx = r*(1-illum*2); // goes from r (new,dark) → 0 (quarter) → -r (full from other side)
-
-  mX.beginPath();
-  if(waxing){
-    // Lit on right: right semicircle + terminator ellipse closing left
-    mX.arc(cx,cy,r,-Math.PI/2,Math.PI/2,false);
-    mX.ellipse(cx,cy,Math.abs(tx),r,0,Math.PI/2,-Math.PI/2,tx>0);
-  }else{
-    // Lit on left: left semicircle + terminator ellipse closing right
-    mX.arc(cx,cy,r,Math.PI/2,-Math.PI/2,false);
-    mX.ellipse(cx,cy,Math.abs(tx),r,0,-Math.PI/2,Math.PI/2,tx<0);
-  }
-  mX.closePath();mX.fill();
-
-  // 3. Soft terminator blend — radial gradient straddling the terminator edge
-  //    to soften the hard ellipse boundary slightly
-  const tEdgeX = cx + (waxing ? -tx : tx) * (waxing ? 1 : -1);
-  const blur = mX.createRadialGradient(tEdgeX, cy, 0, tEdgeX, cy, r*0.45);
-  blur.addColorStop(0,'rgba(12,15,30,0)');
-  blur.addColorStop(0.5,'rgba(12,15,30,0.45)');
-  blur.addColorStop(1,'rgba(12,15,30,0)');
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=blur;mX.fill();
-
-  // 4. Limb darkening ring
-  const limb=mX.createRadialGradient(cx,cy,r*0.5,cx,cy,r);
-  limb.addColorStop(0,'rgba(0,0,0,0)');
-  limb.addColorStop(1,'rgba(0,0,0,0.32)');
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=limb;mX.fill();
-
+  // Draw at logical size — browser downsamples from dpr*size → size, giving smooth AA
+  mX.drawImage(off, cx-r-pad, cy-r-pad, dia, dia);
   mX.restore();
   mX.restore();
 }
