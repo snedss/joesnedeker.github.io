@@ -296,79 +296,61 @@ function renderMoon(bx,by,sz,opacity){
   if(opacity<=0)return;
   const cx=bx/100*w, cy=by/100*h, r=sz/2;
   const phase=lunarPhase();
-  // illum: 0=new moon, 1=full moon
-  const illum=phase<=0.5?phase*2:(1-phase)*2;
+  const illum=phase<=0.5?phase*2:(1-phase)*2; // 0=new,1=full
   const waxing=phase<0.5;
 
   mX.save();
   mX.globalAlpha=opacity;
 
-  // Outer glow
-  const glow=mX.createRadialGradient(cx,cy,r*0.8,cx,cy,r*3.5);
-  glow.addColorStop(0,`rgba(215,205,160,${0.14*illum+0.04})`);
-  glow.addColorStop(1,'rgba(215,205,160,0)');
-  mX.beginPath();mX.arc(cx,cy,r*3.5,0,Math.PI*2);mX.fillStyle=glow;mX.fill();
+  // Outer atmospheric glow
+  const glow=mX.createRadialGradient(cx,cy,r*0.9,cx,cy,r*4);
+  glow.addColorStop(0,`rgba(220,210,165,${0.12+illum*0.1})`);
+  glow.addColorStop(0.5,'rgba(200,190,140,0.04)');
+  glow.addColorStop(1,'rgba(200,190,140,0)');
+  mX.beginPath();mX.arc(cx,cy,r*4,0,Math.PI*2);mX.fillStyle=glow;mX.fill();
 
-  // Clip everything to disc
+  // Clip to disc
   mX.save();
   mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
 
-  // Dark base (unlit side color)
-  mX.fillStyle='#080c1a';
-  mX.fillRect(cx-r,cy-r,r*2,r*2);
+  // 1. Dark base — the unlit moon color
+  mX.fillStyle='#0a0d20';
+  mX.fillRect(cx-r-1,cy-r-1,r*2+2,r*2+2);
 
-  // Lit surface — use offscreen canvas rendered via pixel shader approach
-  // We draw the lit hemisphere by painting column by column using the
-  // sphere's surface normal to determine lit vs shadow with a soft terminator
-  const res=r*2+2;
-  const imgData=mX.createImageData(Math.ceil(res),Math.ceil(res));
-  const ox=cx-r, oy=cy-r;
+  // 2. Lit sphere surface — radial gradient centered slightly off-center
+  //    for a 3D look. Always paint the full disc.
+  const litGrad=mX.createRadialGradient(cx-r*0.1,cy-r*0.15,r*0.05,cx,cy,r*1.05);
+  litGrad.addColorStop(0,'#fffff0');
+  litGrad.addColorStop(0.25,'#f5edcc');
+  litGrad.addColorStop(0.65,'#d8c88a');
+  litGrad.addColorStop(1,'#8a7040');
+  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=litGrad;mX.fill();
 
-  for(let py=0;py<Math.ceil(res);py++){
-    for(let px=0;px<Math.ceil(res);px++){
-      // Normalize to [-1,1] sphere coords
-      const nx=(px-r)/r, ny=(py-r)/r;
-      const nz2=1-nx*nx-ny*ny;
-      if(nz2<0)continue; // outside disc
-      const nz=Math.sqrt(nz2);
+  // 3. Shadow — a soft radial gradient offset to the dark side.
+  //    The shadow center is pushed far to the dark side so its gradient
+  //    sweeps softly across the terminator with no hard line.
+  //    shadowX: negative=shadow from left (waxing, lit on right),
+  //             positive=shadow from right (waning, lit on left)
+  const shadowDir = waxing ? -1 : 1;
+  // At illum=0 (new): shadow fully covers, offset=0 (centered)
+  // At illum=1 (full): shadow pushed far off disc, no coverage
+  const offset = r * illum * 1.85 * shadowDir * -1; // push shadow off to dark side
+  const shadowR = r * (1.1 + illum * 1.2); // shadow gradient radius shrinks as moon gets fuller
 
-      // Terminator: for a sphere, the lit/dark boundary is where
-      // dot(normal, lightDir) = 0. Light direction in x depends on phase.
-      // illum=0: light from far left (new), illum=1: light from front (full)
-      // Map illum to a light x-direction
-      // waxing: light comes from right side, waning: from left
-      const lightX = waxing ? (illum*2-1) : (1-illum*2);
-      const lightZ = Math.sqrt(Math.max(0,1-lightX*lightX));
-      // dot product of surface normal with light direction
-      const dot = nx*lightX + nz*lightZ;
+  const shadowX = cx + offset;
+  const shadow=mX.createRadialGradient(shadowX,cy,0,shadowX,cy,shadowR);
+  shadow.addColorStop(0,'rgba(6,8,22,0.97)');
+  shadow.addColorStop(0.55,'rgba(6,8,22,0.92)');
+  shadow.addColorStop(0.78,'rgba(6,8,22,0.5)');
+  shadow.addColorStop(0.92,'rgba(6,8,22,0.12)');
+  shadow.addColorStop(1,'rgba(6,8,22,0)');
+  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=shadow;mX.fill();
 
-      // Soft terminator — sigmoid around dot=0
-      const litFactor=Math.max(0, Math.tanh(dot*6)*0.5+0.5);
-
-      // Surface color interpolated between dark and lit
-      const litR=240,litG=228,litB=185;
-      const darkR=8,darkG=10,darkB=24;
-      const sr=Math.round(darkR+(litR-darkR)*litFactor);
-      const sg=Math.round(darkG+(litG-darkG)*litFactor);
-      const sb=Math.round(darkB+(litB-darkB)*litFactor);
-
-      // Limb darkening — dims toward edge of sphere
-      const limb=nz*0.55+0.45;
-
-      const idx=(py*Math.ceil(res)+px)*4;
-      imgData.data[idx]=sr*limb;
-      imgData.data[idx+1]=sg*limb;
-      imgData.data[idx+2]=sb*limb;
-      imgData.data[idx+3]=255;
-    }
-  }
-  mX.putImageData(imgData,Math.floor(ox),Math.floor(oy));
-
-  // Subtle specular highlight
-  const spec=mX.createRadialGradient(cx-r*0.2,cy-r*0.25,0,cx-r*0.2,cy-r*0.25,r*0.7);
-  spec.addColorStop(0,`rgba(255,252,235,${0.18*illum})`);
-  spec.addColorStop(1,'rgba(255,252,235,0)');
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=spec;mX.fill();
+  // 4. Limb darkening — dims the very edge all the way around
+  const limb=mX.createRadialGradient(cx,cy,r*0.55,cx,cy,r);
+  limb.addColorStop(0,'rgba(0,0,0,0)');
+  limb.addColorStop(1,'rgba(0,0,0,0.38)');
+  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=limb;mX.fill();
 
   mX.restore();
   mX.restore();
