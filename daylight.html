@@ -299,18 +299,19 @@ function renderMoon(bx,by,sz,opacity){
   const illum=phase<=0.5?phase*2:(1-phase)*2;
   const waxing=phase<0.5;
 
-  // Render moon into a small offscreen canvas at 2x for smoothness
+  // Render at 4x supersampling then scale down for smooth edges
+  const SS=4;
   const res=Math.ceil(r*2+4);
   const off=document.createElement('canvas');
-  off.width=res;off.height=res;
+  off.width=res*SS;off.height=res*SS;
   const ox=off.getContext('2d');
-  const cr=r, ccx=res/2, ccy=res/2;
+  const cr=r*SS, ccx=res*SS/2, ccy=res*SS/2;
 
-  const img=ox.createImageData(res,res);
+  const img=ox.createImageData(res*SS,res*SS);
   const data=img.data;
 
-  for(let py=0;py<res;py++){
-    for(let px=0;px<res;px++){
+  for(let py=0;py<res*SS;py++){
+    for(let px=0;px<res*SS;px++){
       const nx=(px-ccx)/cr, ny=(py-ccy)/cr;
       const d2=nx*nx+ny*ny;
       if(d2>1) continue;
@@ -340,7 +341,7 @@ function renderMoon(bx,by,sz,opacity){
       const g_=Math.round(200*base + (16+es*28)*(1-base));
       const b_=Math.round(155*base + (32+es*40)*(1-base));
 
-      const i=(py*res+px)*4;
+      const i=(py*res*SS+px)*4;
       data[i]=r_; data[i+1]=g_; data[i+2]=b_; data[i+3]=255;
     }
   }
