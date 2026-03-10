@@ -415,9 +415,10 @@ const SKY=[
   {h:24,top:'#020510',bot:'#0a0820',phase:'midnight',text:'#aabbff'},
 ];
 const BODY=[
-  {h:0,x:50,y:110,sz:58,col:'#e8d090',so:1,moon:true},
-  {h:4,x:30,y:85,sz:54,col:'#e8d090',so:1,moon:true},
-  {h:5,x:15,y:65,sz:50,col:'#f0c070',so:0.6,moon:true},
+  {h:0,x:62,y:45,sz:58,col:'#e8d090',so:1,moon:true},
+  {h:2,x:50,y:28,sz:58,col:'#e8d090',so:1,moon:true},
+  {h:4,x:36,y:38,sz:54,col:'#e8d090',so:1,moon:true},
+  {h:5,x:22,y:55,sz:50,col:'#f0c070',so:0.6,moon:true},
   {h:6,x:8,y:45,sz:54,col:'#ff8020',so:0.1,moon:false},
   {h:7,x:18,y:30,sz:60,col:'#ffaa30',so:0,moon:false},
   {h:9,x:35,y:18,sz:65,col:'#ffcc50',so:0,moon:false},
@@ -425,10 +426,11 @@ const BODY=[
   {h:15,x:65,y:18,sz:65,col:'#ffcc50',so:0,moon:false},
   {h:17,x:78,y:28,sz:63,col:'#ff9a20',so:0,moon:false},
   {h:18,x:88,y:42,sz:56,col:'#ff6010',so:0.1,moon:false},
-  {h:19,x:93,y:58,sz:50,col:'#e07830',so:0.4,moon:true},
-  {h:20,x:85,y:75,sz:50,col:'#d8c080',so:0.7,moon:true},
-  {h:21,x:72,y:88,sz:54,col:'#e8d090',so:0.95,moon:true},
-  {h:24,x:50,y:110,sz:58,col:'#e8d090',so:1,moon:true},
+  {h:19,x:85,y:82,sz:50,col:'#e07830',so:0.4,moon:true},
+  {h:20,x:80,y:70,sz:50,col:'#d8c080',so:0.7,moon:true},
+  {h:21,x:75,y:62,sz:54,col:'#e8d090',so:0.95,moon:true},
+  {h:22,x:70,y:55,sz:56,col:'#e8d090',so:1,moon:true},
+  {h:24,x:62,y:45,sz:58,col:'#e8d090',so:1,moon:true},
 ];
 function interp(F,hf){for(let i=0;i<F.length-1;i++){if(hf>=F[i].h&&hf<F[i+1].h){const t=(hf-F[i].h)/(F[i+1].h-F[i].h);return{a:F[i],b:F[i+1],t};}}return{a:F[F.length-1],b:F[F.length-1],t:0};}
 function fmtTime(d){let h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM';h=h%12||12;return`${h}:${String(m).padStart(2,'0')} ${ap}`;}
