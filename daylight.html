@@ -42,6 +42,7 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 .panel-btn:hover{background:rgba(255,255,255,0.14);}
 #radar-btn{right:24px;}
 #forecast-btn{left:24px;}
+#spotify-btn{left:50%;transform:translateX(-50%);}
 
 .slide-panel{position:absolute;bottom:0;left:0;right:0;height:0;overflow:hidden;z-index:25;transition:height 0.4s cubic-bezier(0.4,0,0.2,1);background:rgba(8,10,22,0.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,0.07);}
 .slide-panel.open{height:46%;}
@@ -50,14 +51,11 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 .ph-sub{font-size:10px;letter-spacing:0.1em;color:rgba(255,255,255,0.18);}
 .panel-body{position:absolute;top:42px;left:0;right:0;bottom:0;overflow:hidden;}
 
-/* Radar */
 #radar-map{width:100%;height:100%;background:#06080f;}
 #radar-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.25);z-index:10;background:#06080f;}
 .leaflet-control-attribution,.leaflet-bottom.leaflet-right{display:none!important;}
 .leaflet-control-zoom a{background:rgba(20,22,36,0.9)!important;border-color:rgba(255,255,255,0.1)!important;color:rgba(255,255,255,0.5)!important;}
-.leaflet-control-zoom a:hover{background:rgba(40,44,70,0.9)!important;}
 
-/* Forecast */
 #forecast-scroll{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;}
 #forecast-scroll::-webkit-scrollbar{display:none;}
 .fc-day{flex:1;min-width:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:8px 4px;border-right:1px solid rgba(255,255,255,0.05);}
@@ -69,6 +67,39 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 .fc-lo{font-size:11px;font-weight:300;color:rgba(255,255,255,0.28);margin-top:1px;}
 .fc-desc{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.22);text-align:center;line-height:1.5;}
 #forecast-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.25);}
+
+/* Spotify */
+#sp-login{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;}
+#sp-login p{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.28);}
+#sp-login-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:24px;color:#fff;font-size:11px;font-family:inherit;letter-spacing:0.14em;text-transform:uppercase;padding:9px 28px;cursor:pointer;transition:background 0.2s;}
+#sp-login-btn:hover{background:rgba(255,255,255,0.18);}
+#sp-player{display:none;flex-direction:column;height:100%;padding:12px 20px 14px;}
+#sp-track-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+#sp-art{width:42px;height:42px;border-radius:4px;background:rgba(255,255,255,0.06);flex-shrink:0;object-fit:cover;}
+#sp-meta{flex:1;min-width:0;}
+#sp-track{font-size:13px;font-weight:500;color:rgba(255,255,255,0.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sp-artist{font-size:10px;letter-spacing:0.06em;color:rgba(255,255,255,0.38);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sp-controls{display:flex;align-items:center;justify-content:center;gap:26px;margin-bottom:12px;}
+.sp-btn{background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;transition:color 0.15s;}
+.sp-btn:hover{color:#fff;}
+#sp-play{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.16);}
+#sp-progress-wrap{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+#sp-elapsed,#sp-total{font-size:9px;letter-spacing:0.06em;color:rgba(255,255,255,0.28);flex-shrink:0;width:28px;}
+#sp-total{text-align:right;}
+#sp-bar-bg{flex:1;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;cursor:pointer;position:relative;}
+#sp-bar-fill{height:100%;background:rgba(255,255,255,0.65);border-radius:2px;width:0%;}
+#sp-search-row{display:flex;gap:8px;}
+#sp-search{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:20px;color:#fff;font-size:11px;padding:7px 14px;outline:none;font-family:inherit;}
+#sp-search::placeholder{color:rgba(255,255,255,0.2);}
+#sp-search-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;color:rgba(255,255,255,0.55);font-size:10px;font-family:inherit;letter-spacing:0.1em;text-transform:uppercase;padding:7px 14px;cursor:pointer;white-space:nowrap;transition:background 0.2s;}
+#sp-search-btn:hover{background:rgba(255,255,255,0.14);}
+#sp-results{margin-top:10px;overflow-y:auto;flex:1;scrollbar-width:none;}
+#sp-results::-webkit-scrollbar{display:none;}
+.sp-result{display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;border-radius:4px;transition:background 0.15s;}
+.sp-result:hover{background:rgba(255,255,255,0.06);}
+.sp-result img{width:30px;height:30px;border-radius:3px;object-fit:cover;}
+.sp-result-name{font-size:11px;color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp-result-sub{font-size:9px;color:rgba(255,255,255,0.32);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 </style>
 </head>
 <body>
@@ -122,6 +153,49 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
     </div>
   </div>
 
+  <div class="slide-panel" id="spotify-panel">
+    <div class="panel-header">
+      <span class="ph-title">Music</span>
+      <span class="ph-sub" id="sp-status"></span>
+    </div>
+    <div class="panel-body">
+      <div id="sp-login">
+        <p>Connect your Spotify account</p>
+        <button id="sp-login-btn">Connect Spotify</button>
+      </div>
+      <div id="sp-player">
+        <div id="sp-track-row">
+          <img id="sp-art" src="" alt=""/>
+          <div id="sp-meta">
+            <div id="sp-track">Not playing</div>
+            <div id="sp-artist"></div>
+          </div>
+        </div>
+        <div id="sp-controls">
+          <button class="sp-btn" id="sp-prev">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+          </button>
+          <button class="sp-btn" id="sp-play">
+            <svg id="sp-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <button class="sp-btn" id="sp-next">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2-8.14 5.5 3.89L8 15.14V9.86zm8-3.86h2v12h-2z"/></svg>
+          </button>
+        </div>
+        <div id="sp-progress-wrap">
+          <span id="sp-elapsed">0:00</span>
+          <div id="sp-bar-bg"><div id="sp-bar-fill"></div></div>
+          <span id="sp-total">0:00</span>
+        </div>
+        <div id="sp-search-row">
+          <input id="sp-search" type="text" placeholder="Search songs, artists…"/>
+          <button id="sp-search-btn">Search</button>
+        </div>
+        <div id="sp-results"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="info">
     <div id="time-display"></div>
     <div id="phase-display"></div>
@@ -129,16 +203,140 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
     <div id="moon-phase-display"></div>
   </div>
   <button class="panel-btn" id="forecast-btn">Forecast</button>
+  <button class="panel-btn" id="spotify-btn">Music</button>
   <button class="panel-btn" id="radar-btn">Radar</button>
 </div>
 
 <script>
+const SPOTIFY_CLIENT_ID='32270ba4e706473da3ecfbf2aee134b4';
+const SPOTIFY_REDIRECT=window.location.origin+window.location.pathname.replace(/\/$/,'');
+const SPOTIFY_SCOPES='streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state user-read-currently-playing';
+let spotifyToken=null,spotifyPlayer=null,spotifyDeviceId=null;
+let spState={playing:false,track:null,artist:null,art:null,duration:0,position:0};
+let spProgressInterval=null;
 let LAT=null,LON=null,CITY='';
 let wx={cloudCover:0,isRain:false,isSnow:false,isFog:false,isThunder:false,temp:null,desc:''};
 let rain=[],snow=[],lastFlash=0;
-let radarOpen=false,radarLoaded=false,forecastOpen=false,forecastLoaded=false,rMap=null;
+let radarOpen=false,radarLoaded=false,forecastOpen=false,forecastLoaded=false,spotifyOpen=false,rMap=null;
 
-// Location
+// --- Spotify Auth ---
+function spLogin(){
+  const state=Math.random().toString(36).slice(2);
+  sessionStorage.setItem('sp_state',state);
+  const url=`https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT)}&scope=${encodeURIComponent(SPOTIFY_SCOPES)}&state=${state}`;
+  window.location.href=url;
+}
+function spHandleCallback(){
+  const hash=window.location.hash.slice(1);
+  if(!hash)return;
+  const p=new URLSearchParams(hash);
+  const token=p.get('access_token');
+  if(!token)return;
+  spotifyToken=token;
+  window.history.replaceState(null,'',window.location.pathname);
+  spInitPlayer();
+}
+function spInitPlayer(){
+  document.getElementById('sp-login').style.display='none';
+  document.getElementById('sp-player').style.display='flex';
+  document.getElementById('sp-status').textContent='Connected';
+  const s=document.createElement('script');
+  s.src='https://sdk.scdn.co/spotify-player.js';
+  document.head.appendChild(s);
+  window.onSpotifyWebPlaybackSDKReady=()=>{
+    spotifyPlayer=new Spotify.Player({
+      name:'Daylight',
+      getOAuthToken:cb=>cb(spotifyToken),
+      volume:0.8
+    });
+    spotifyPlayer.addListener('ready',({device_id})=>{
+      spotifyDeviceId=device_id;
+      spTransferPlayback(device_id);
+    });
+    spotifyPlayer.addListener('player_state_changed',st=>{
+      if(!st)return;
+      const t=st.track_window.current_track;
+      spState={
+        playing:!st.paused,
+        track:t.name,
+        artist:t.artists.map(a=>a.name).join(', '),
+        art:t.album.images[0]?.url||'',
+        duration:st.duration,
+        position:st.position
+      };
+      spUpdateUI();
+    });
+    spotifyPlayer.connect();
+  };
+}
+async function spTransferPlayback(id){
+  await fetch('https://api.spotify.com/v1/me/player',{
+    method:'PUT',headers:{'Authorization':'Bearer '+spotifyToken,'Content-Type':'application/json'},
+    body:JSON.stringify({device_ids:[id],play:false})
+  });
+}
+function spUpdateUI(){
+  document.getElementById('sp-track').textContent=spState.track||'Not playing';
+  document.getElementById('sp-artist').textContent=spState.artist||'';
+  if(spState.art)document.getElementById('sp-art').src=spState.art;
+  const playIcon=document.getElementById('sp-play-icon');
+  playIcon.innerHTML=spState.playing
+    ?'<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
+    :'<path d="M8 5v14l11-7z"/>';
+  document.getElementById('sp-total').textContent=fmtMs(spState.duration);
+  if(spProgressInterval)clearInterval(spProgressInterval);
+  if(spState.playing){
+    spProgressInterval=setInterval(()=>{
+      spState.position+=500;
+      spUpdateProgress();
+    },500);
+  }
+  spUpdateProgress();
+}
+function spUpdateProgress(){
+  const pct=spState.duration>0?(spState.position/spState.duration*100):0;
+  document.getElementById('sp-bar-fill').style.width=pct+'%';
+  document.getElementById('sp-elapsed').textContent=fmtMs(spState.position);
+}
+function fmtMs(ms){const s=Math.floor(ms/1000),m=Math.floor(s/60);return`${m}:${String(s%60).padStart(2,'0')}`;}
+
+async function spSearch(q){
+  if(!q.trim()||!spotifyToken)return;
+  const res=await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=8`,{
+    headers:{'Authorization':'Bearer '+spotifyToken}
+  });
+  const d=await res.json();
+  const container=document.getElementById('sp-results');
+  container.innerHTML='';
+  (d.tracks?.items||[]).forEach(t=>{
+    const el=document.createElement('div');el.className='sp-result';
+    el.innerHTML=`<img src="${t.album.images[2]?.url||''}" alt=""/><div class="sp-result-meta"><div class="sp-result-name">${t.name}</div><div class="sp-result-sub">${t.artists.map(a=>a.name).join(', ')} · ${t.album.name}</div></div>`;
+    el.addEventListener('click',()=>spPlayTrack(t.uri));
+    container.appendChild(el);
+  });
+}
+async function spPlayTrack(uri){
+  if(!spotifyDeviceId||!spotifyToken)return;
+  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`,{
+    method:'PUT',headers:{'Authorization':'Bearer '+spotifyToken,'Content-Type':'application/json'},
+    body:JSON.stringify({uris:[uri]})
+  });
+}
+
+document.getElementById('sp-login-btn').addEventListener('click',spLogin);
+document.getElementById('sp-prev').addEventListener('click',()=>spotifyPlayer?.previousTrack());
+document.getElementById('sp-next').addEventListener('click',()=>spotifyPlayer?.nextTrack());
+document.getElementById('sp-play').addEventListener('click',()=>spotifyPlayer?.togglePlay());
+document.getElementById('sp-search-btn').addEventListener('click',()=>spSearch(document.getElementById('sp-search').value));
+document.getElementById('sp-search').addEventListener('keydown',e=>{if(e.key==='Enter')spSearch(e.target.value);});
+document.getElementById('sp-bar-bg').addEventListener('click',function(e){
+  if(!spotifyPlayer||!spState.duration)return;
+  const r=this.getBoundingClientRect();
+  const pct=(e.clientX-r.left)/r.width;
+  spotifyPlayer.seek(Math.floor(pct*spState.duration));
+});
+
+// --- Location ---
 document.getElementById('gps-btn').addEventListener('click',()=>{
   setErr('');
   if(!navigator.geolocation)return setErr('Geolocation not supported.');
@@ -170,15 +368,16 @@ function launch(){
   fetchWx();setInterval(fetchWx,10*60*1000);
   initStars();initPC();initMC();
   animP();setInterval(update,2000);update();
+  spHandleCallback();
 }
 
-// Panels
+// --- Panels ---
 function closeAll(){
-  radarOpen=forecastOpen=false;
-  document.getElementById('radar-panel').classList.remove('open');
-  document.getElementById('forecast-panel').classList.remove('open');
+  radarOpen=forecastOpen=spotifyOpen=false;
+  ['radar-panel','forecast-panel','spotify-panel'].forEach(id=>document.getElementById(id).classList.remove('open'));
   document.getElementById('radar-btn').textContent='Radar';
   document.getElementById('forecast-btn').textContent='Forecast';
+  document.getElementById('spotify-btn').textContent='Music';
 }
 document.getElementById('radar-btn').addEventListener('click',function(){
   if(radarOpen){closeAll();return;}
@@ -195,8 +394,14 @@ document.getElementById('forecast-btn').addEventListener('click',function(){
   this.textContent='Close';
   if(!forecastLoaded){forecastLoaded=true;fetchForecast();}
 });
+document.getElementById('spotify-btn').addEventListener('click',function(){
+  if(spotifyOpen){closeAll();return;}
+  closeAll();spotifyOpen=true;
+  document.getElementById('spotify-panel').classList.add('open');
+  this.textContent='Close';
+});
 
-// Leaflet
+// --- Leaflet ---
 function loadLeaflet(){
   return new Promise(res=>{
     if(window.L){res();return;}
@@ -204,36 +409,29 @@ function loadLeaflet(){
     const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';s.onload=res;document.head.appendChild(s);
   });
 }
-
-// Radar — Iowa State Mesonet NEXRAD (free, no key, good zoom)
 async function initRadar(){
   await new Promise(r=>setTimeout(r,430));
   const el=document.getElementById('radar-map');
   el.style.cssText='position:absolute;inset:0;width:100%;height:100%;';
   rMap=L.map(el,{zoomControl:true,attributionControl:false,preferCanvas:true}).setView([LAT,LON],7);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(rMap);
-  // NEXRAD composite via Iowa State Mesonet — solid zoom support
-  L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png',{
-    opacity:0.7,maxZoom:16,maxNativeZoom:16,updateWhenIdle:false
-  }).addTo(rMap);
-  // Road/label overlay on top so geography is readable
+  L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png',{opacity:0.7,maxZoom:16,maxNativeZoom:16,updateWhenIdle:false}).addTo(rMap);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,pane:'overlayPane'}).addTo(rMap);
   document.getElementById('radar-loading').style.display='none';
   rMap.invalidateSize();
 }
 
-// Forecast SVG icons — solid minimal shapes
+// --- Forecast icons ---
 function fcIcon(code){
   const w='rgba(255,255,255,0.82)',d='rgba(255,255,255,0.28)';
-  if(code===0) return `<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="6" fill="${w}"/><g stroke="${w}" stroke-width="1.5" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180,x1=14+Math.cos(r)*9,y1=14+Math.sin(r)*9,x2=14+Math.cos(r)*12,y2=14+Math.sin(r)*12;return`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;}).join('')}</g></svg>`;
-  if(code<=2) return `<svg viewBox="0 0 28 28"><circle cx="10" cy="12" r="4" fill="${w}" opacity="0.6"/><ellipse cx="17" cy="17" rx="7" ry="5" fill="${w}"/><ellipse cx="11" cy="18" rx="5" ry="4" fill="${w}"/></svg>`;
-  if(code<=3) return `<svg viewBox="0 0 28 28"><ellipse cx="15" cy="15" rx="9" ry="6.5" fill="${w}"/><ellipse cx="10" cy="16" rx="6" ry="5" fill="${w}"/></svg>`;
-  if(code<=49) return `<svg viewBox="0 0 28 28">${[6,10,14,18,22].map((x,i)=>`<line x1="${x}" y1="${11+i%2*2}" x2="${x}" y2="${17+i%2*2}" stroke="${w}" stroke-width="1.5" stroke-linecap="round" opacity="${0.3+i*0.14}"/>`).join('')}</svg>`;
-  if(code<=67||code<=82) return `<svg viewBox="0 0 28 28"><ellipse cx="15" cy="11" rx="8" ry="5.5" fill="${w}"/><ellipse cx="9" cy="12" rx="5" ry="4" fill="${w}"/>${[[9,20],[14,22],[19,20],[12,25],[17,24]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="1.2" ry="2.5" fill="${d}"/>`).join('')}</svg>`;
-  if(code<=77||code<=86) return `<svg viewBox="0 0 28 28"><ellipse cx="15" cy="11" rx="8" ry="5.5" fill="${w}"/><ellipse cx="9" cy="12" rx="5" ry="4" fill="${w}"/>${[[9,21],[14,21],[19,21],[12,25],[17,25]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2" fill="${d}"/>`).join('')}</svg>`;
-  return `<svg viewBox="0 0 28 28"><ellipse cx="15" cy="10" rx="8" ry="5" fill="${w}"/><ellipse cx="9" cy="11" rx="5" ry="4" fill="${w}"/><polygon points="16,16 12,22 15,22 11,28 20,20 16,20 19,16" fill="${d}"/></svg>`;
+  if(code===0)return`<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="6" fill="${w}"/><g stroke="${w}" stroke-width="1.5" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const rd=a*Math.PI/180,x1=14+Math.cos(rd)*9,y1=14+Math.sin(rd)*9,x2=14+Math.cos(rd)*12,y2=14+Math.sin(rd)*12;return`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;}).join('')}</g></svg>`;
+  if(code<=2)return`<svg viewBox="0 0 28 28"><circle cx="10" cy="12" r="4" fill="${w}" opacity="0.6"/><ellipse cx="17" cy="17" rx="7" ry="5" fill="${w}"/><ellipse cx="11" cy="18" rx="5" ry="4" fill="${w}"/></svg>`;
+  if(code<=3)return`<svg viewBox="0 0 28 28"><ellipse cx="15" cy="15" rx="9" ry="6.5" fill="${w}"/><ellipse cx="10" cy="16" rx="6" ry="5" fill="${w}"/></svg>`;
+  if(code<=49)return`<svg viewBox="0 0 28 28">${[6,10,14,18,22].map((x,i)=>`<line x1="${x}" y1="${11+i%2*2}" x2="${x}" y2="${17+i%2*2}" stroke="${w}" stroke-width="1.5" stroke-linecap="round" opacity="${0.3+i*0.14}"/>`).join('')}</svg>`;
+  if(code<=67||code<=82)return`<svg viewBox="0 0 28 28"><ellipse cx="15" cy="11" rx="8" ry="5.5" fill="${w}"/><ellipse cx="9" cy="12" rx="5" ry="4" fill="${w}"/>${[[9,20],[14,22],[19,20],[12,25],[17,24]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="1.2" ry="2.5" fill="${d}"/>`).join('')}</svg>`;
+  if(code<=77||code<=86)return`<svg viewBox="0 0 28 28"><ellipse cx="15" cy="11" rx="8" ry="5.5" fill="${w}"/><ellipse cx="9" cy="12" rx="5" ry="4" fill="${w}"/>${[[9,21],[14,21],[19,21],[12,25],[17,25]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2" fill="${d}"/>`).join('')}</svg>`;
+  return`<svg viewBox="0 0 28 28"><ellipse cx="15" cy="10" rx="8" ry="5" fill="${w}"/><ellipse cx="9" cy="11" rx="5" ry="4" fill="${w}"/><polygon points="16,16 12,22 15,22 11,28 20,20 16,20 19,16" fill="${d}"/></svg>`;
 }
-
 function wmoDesc(c){
   if(c===0)return'Clear';if(c<=2)return'Partly cloudy';if(c===3)return'Overcast';
   if(c<=49)return'Foggy';if(c<=55)return'Drizzle';if(c<=67)return'Rain';
@@ -256,7 +454,7 @@ async function fetchForecast(){
   }catch{document.getElementById('forecast-loading').textContent='Forecast unavailable';}
 }
 
-// Stars
+// --- Stars ---
 const sC=document.getElementById('stars'),sX=sC.getContext('2d');let stars=[];
 function initStars(){
   const dpr=devicePixelRatio||1,w=innerWidth,h=innerHeight;
@@ -268,7 +466,7 @@ function drawStars(op){
   stars.forEach(s=>{sX.beginPath();sX.arc(s.x,s.y,s.r,0,Math.PI*2);sX.fillStyle=`rgba(255,255,255,${s.a*op})`;sX.fill();});
 }
 
-// Precip
+// --- Precip ---
 const pC=document.getElementById('rain-canvas'),pX=pC.getContext('2d');
 function initPC(){const dpr=devicePixelRatio||1,w=innerWidth,h=innerHeight;pC.width=w*dpr;pC.height=h*dpr;pC.style.width=w+'px';pC.style.height=h+'px';pX.setTransform(dpr,0,0,dpr,0,0);}
 function animP(){
@@ -284,7 +482,7 @@ function animP(){
   requestAnimationFrame(animP);
 }
 
-// Moon — glow sphere with phase shadow
+// --- Moon ---
 const mC=document.getElementById('moon-canvas'),mX=mC.getContext('2d');
 function initMC(){const dpr=devicePixelRatio||1,w=innerWidth,h=innerHeight;mC.width=w*dpr;mC.height=h*dpr;mC.style.width=w+'px';mC.style.height=h+'px';mX.setTransform(dpr,0,0,dpr,0,0);}
 function lunarPhase(){const k=new Date('2000-01-06T18:14:00Z'),s=29.53058867,diff=(Date.now()-k)/86400000;return((diff%s)+s)%s/s;}
@@ -296,7 +494,7 @@ function renderMoon(bx,by,sz,opacity){
   if(opacity<=0)return;
   const cx=bx/100*w, cy=by/100*h, r=sz/2;
   const phase=lunarPhase();
-  const illum=phase<=0.5?phase*2:(1-phase)*2; // 0=new, 1=full
+  const illum=phase<=0.5?phase*2:(1-phase)*2;
   const waxing=phase<0.5;
 
   mX.save();
@@ -308,42 +506,31 @@ function renderMoon(bx,by,sz,opacity){
   glow.addColorStop(1,'rgba(220,208,160,0)');
   mX.beginPath();mX.arc(cx,cy,r*3.5,0,Math.PI*2);mX.fillStyle=glow;mX.fill();
 
-  // Use DPR-aware offscreen canvas so it's sharp on retina
   const dpr=window.devicePixelRatio||1;
   const pad=4;
   const dia=Math.ceil(r*2)+pad*2;
   const off=document.createElement('canvas');
   off.width=off.height=dia*dpr;
   const ox=off.getContext('2d');
-
   const img=ox.createImageData(dia*dpr,dia*dpr);
   const D=img.data;
-  const cr=r*dpr, cc=dia*dpr/2;
+  const cr=r*dpr,cc=dia*dpr/2;
 
   for(let py=0;py<dia*dpr;py++){
     for(let px=0;px<dia*dpr;px++){
-      const nx=(px-cc)/cr, ny=(py-cc)/cr;
+      const nx=(px-cc)/cr,ny=(py-cc)/cr;
       const d2=nx*nx+ny*ny;
       if(d2>=1)continue;
       const nz=Math.sqrt(1-d2);
-
-      // Light angle: illum=1 → light head-on (lx=0), illum=0 → light 90° to side
-      // waxing: lit on right (+x), waning: lit on left (-x)
       const angle=(1-illum)*Math.PI*0.48;
       const lx=(waxing?1:-1)*Math.sin(angle);
       const lz=Math.cos(angle);
       const dot=nx*lx+nz*lz;
-
-      // Soft terminator with smoothstep over a moderate band
       const s=0.25;
       let lit=Math.max(0,Math.min(1,(dot+s)/(s*2)));
       lit=lit*lit*(3-2*lit);
-
-      // Limb darkening
       const limb=nz*0.55+0.45;
       const f=lit*limb;
-
-      // Lit: warm cream. Unlit: very dark blue (earthshine)
       const i=(py*dia*dpr+px)*4;
       D[i  ]=Math.round(248*f+10*(1-f));
       D[i+1]=Math.round(238*f+12*(1-f));
@@ -353,15 +540,12 @@ function renderMoon(bx,by,sz,opacity){
   }
   ox.putImageData(img,0,0);
 
-  // Draw sphere — clip to disc
   mX.save();
   mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
-  mX.drawImage(off, cx-r-pad, cy-r-pad, dia, dia);
+  mX.drawImage(off,cx-r-pad,cy-r-pad,dia,dia);
   mX.restore();
 
-
-
-  // Wide atmospheric glow — blends moon into sky
+  // Wide atmospheric glow
   const glow2=mX.createRadialGradient(cx,cy,r*0.9,cx,cy,r*6);
   glow2.addColorStop(0,`rgba(210,195,145,${0.15+illum*0.1})`);
   glow2.addColorStop(0.25,`rgba(210,195,145,${0.06+illum*0.04})`);
@@ -372,7 +556,7 @@ function renderMoon(bx,by,sz,opacity){
   mX.restore();
 }
 
-// Weather
+// --- Weather ---
 function interpWMO(c){
   if(c===0)return{desc:'clear',isRain:false,isSnow:false,isFog:false,isThunder:false};
   if(c<=2)return{desc:'partly cloudy',isRain:false,isSnow:false,isFog:false,isThunder:false};
@@ -393,7 +577,7 @@ async function fetchWx(){
   }catch(e){console.warn(e);}
 }
 
-// Interpolation
+// --- Helpers ---
 const lerp=(a,b,t)=>a+(b-a)*t;
 const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
 function lc(a,b,t){const[r1,g1,b1]=hex(a),[r2,g2,b2]=hex(b);return`rgb(${Math.round(lerp(r1,r2,t))},${Math.round(lerp(g1,g2,t))},${Math.round(lerp(b1,b2,t))})`;}
@@ -453,7 +637,6 @@ function update(){
 
   const{a:ba,b:bb,t:bt}=interp(BODY,hf);
   const bx=lerp(ba.x,bb.x,bt),byRaw=lerp(ba.y,bb.y,bt),bsz=lerp(ba.sz,bb.sz,bt),bcol=lc(ba.col,bb.col,bt),sop=lerp(ba.so,bb.so,bt);
-  // Clamp so body never goes fully off screen — always show at least half
   const by=Math.min(byRaw,92);
   const moon=bt<0.5?ba.moon:bb.moon,bop=Math.max(0,1-cc*1.35);
   const sm=document.getElementById('sun-moon');
