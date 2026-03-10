@@ -296,63 +296,70 @@ function renderMoon(bx,by,sz,opacity){
   if(opacity<=0)return;
   const cx=bx/100*w, cy=by/100*h, r=sz/2;
   const phase=lunarPhase();
-  const illum=phase<=0.5?phase*2:(1-phase)*2; // 0=new,1=full
+  const illum=phase<=0.5?phase*2:(1-phase)*2;
   const waxing=phase<0.5;
 
+  // Render moon into a small offscreen canvas at 2x for smoothness
+  const res=Math.ceil(r*2+4);
+  const off=document.createElement('canvas');
+  off.width=res;off.height=res;
+  const ox=off.getContext('2d');
+  const cr=r, ccx=res/2, ccy=res/2;
+
+  const img=ox.createImageData(res,res);
+  const data=img.data;
+
+  for(let py=0;py<res;py++){
+    for(let px=0;px<res;px++){
+      const nx=(px-ccx)/cr, ny=(py-ccy)/cr;
+      const d2=nx*nx+ny*ny;
+      if(d2>1) continue;
+      const nz=Math.sqrt(1-d2);
+
+      // Light direction: at illum=1 (full) light is straight on (lx=0,lz=1)
+      // At illum=0 (new) light is fully to the side (lx=±1,lz=0)
+      // waxing: light from right (+x), waning: light from left (-x)
+      const angle=(1-illum)*Math.PI*0.5;
+      const lx=(waxing?1:-1)*Math.sin(angle);
+      const lz=Math.cos(angle);
+
+      // Diffuse lighting
+      let diff=nx*lx+nz*lz;
+      // Soft terminator — smooth step instead of hard cutoff
+      diff=diff<-0.12?0:diff>0.12?1:(diff+0.12)/0.24;
+      diff=diff*diff*(3-2*diff); // smoothstep
+
+      // Limb darkening
+      const limb=nz*0.6+0.4;
+
+      // Surface albedo — warm lunar color
+      const base=diff*limb;
+      const r_=Math.round(220*base+6*(1-base));
+      const g_=Math.round(205*base+7*(1-base));
+      const b_=Math.round(158*base+18*(1-base));
+
+      const i=(py*res+px)*4;
+      data[i]=r_; data[i+1]=g_; data[i+2]=b_; data[i+3]=255;
+    }
+  }
+  ox.putImageData(img,0,0);
+
+  // Now draw to main canvas
   mX.save();
   mX.globalAlpha=opacity;
 
-  // Outer atmospheric glow
-  const glow=mX.createRadialGradient(cx,cy,r*0.9,cx,cy,r*4);
-  glow.addColorStop(0,`rgba(220,210,165,${0.12+illum*0.1})`);
-  glow.addColorStop(0.5,'rgba(200,190,140,0.04)');
-  glow.addColorStop(1,'rgba(200,190,140,0)');
-  mX.beginPath();mX.arc(cx,cy,r*4,0,Math.PI*2);mX.fillStyle=glow;mX.fill();
+  // Glow
+  const glow=mX.createRadialGradient(cx,cy,r*0.85,cx,cy,r*3.5);
+  glow.addColorStop(0,`rgba(215,200,155,${0.08+illum*0.12})`);
+  glow.addColorStop(1,'rgba(215,200,155,0)');
+  mX.beginPath();mX.arc(cx,cy,r*3.5,0,Math.PI*2);mX.fillStyle=glow;mX.fill();
 
-  // Clip to disc
+  // Draw sphere with clip
   mX.save();
   mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
-
-  // 1. Dark base — the unlit moon color
-  mX.fillStyle='#0a0d20';
-  mX.fillRect(cx-r-1,cy-r-1,r*2+2,r*2+2);
-
-  // 2. Lit sphere surface — radial gradient centered slightly off-center
-  //    for a 3D look. Always paint the full disc.
-  const litGrad=mX.createRadialGradient(cx-r*0.1,cy-r*0.15,r*0.05,cx,cy,r*1.05);
-  litGrad.addColorStop(0,'#fffff0');
-  litGrad.addColorStop(0.25,'#f5edcc');
-  litGrad.addColorStop(0.65,'#d8c88a');
-  litGrad.addColorStop(1,'#8a7040');
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=litGrad;mX.fill();
-
-  // 3. Shadow — a soft radial gradient offset to the dark side.
-  //    The shadow center is pushed far to the dark side so its gradient
-  //    sweeps softly across the terminator with no hard line.
-  //    shadowX: negative=shadow from left (waxing, lit on right),
-  //             positive=shadow from right (waning, lit on left)
-  const shadowDir = waxing ? -1 : 1;
-  // At illum=0 (new): shadow fully covers, offset=0 (centered)
-  // At illum=1 (full): shadow pushed far off disc, no coverage
-  const offset = r * illum * 1.85 * shadowDir * -1; // push shadow off to dark side
-  const shadowR = r * (1.1 + illum * 1.2); // shadow gradient radius shrinks as moon gets fuller
-
-  const shadowX = cx + offset;
-  const shadow=mX.createRadialGradient(shadowX,cy,0,shadowX,cy,shadowR);
-  shadow.addColorStop(0,'rgba(6,8,22,0.97)');
-  shadow.addColorStop(0.55,'rgba(6,8,22,0.92)');
-  shadow.addColorStop(0.78,'rgba(6,8,22,0.5)');
-  shadow.addColorStop(0.92,'rgba(6,8,22,0.12)');
-  shadow.addColorStop(1,'rgba(6,8,22,0)');
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=shadow;mX.fill();
-
-  // 4. Limb darkening — dims the very edge all the way around
-  const limb=mX.createRadialGradient(cx,cy,r*0.55,cx,cy,r);
-  limb.addColorStop(0,'rgba(0,0,0,0)');
-  limb.addColorStop(1,'rgba(0,0,0,0.38)');
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=limb;mX.fill();
-
+  mX.drawImage(off,cx-r-1,cy-r-1,res,res);
   mX.restore();
+
   mX.restore();
 }
 
