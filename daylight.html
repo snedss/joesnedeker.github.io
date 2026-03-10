@@ -449,7 +449,9 @@ function update(){
   document.getElementById('sky').style.background=`linear-gradient(to bottom,${top} 0%,${bot} 100%)`;
 
   const{a:ba,b:bb,t:bt}=interp(BODY,hf);
-  const bx=lerp(ba.x,bb.x,bt),by=lerp(ba.y,bb.y,bt),bsz=lerp(ba.sz,bb.sz,bt),bcol=lc(ba.col,bb.col,bt),sop=lerp(ba.so,bb.so,bt);
+  const bx=lerp(ba.x,bb.x,bt),byRaw=lerp(ba.y,bb.y,bt),bsz=lerp(ba.sz,bb.sz,bt),bcol=lc(ba.col,bb.col,bt),sop=lerp(ba.so,bb.so,bt);
+  // Clamp so body never goes fully off screen — always show at least half
+  const by=Math.min(byRaw,92);
   const moon=bt<0.5?ba.moon:bb.moon,bop=Math.max(0,1-cc*1.35);
   const sm=document.getElementById('sun-moon');
 
