@@ -38,8 +38,8 @@
   #weather-display { font-size:11px; letter-spacing:0.08em; opacity:0.55; margin-top:2px; transition:color 2s ease; }
   #moon-phase-display { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.3; margin-top:2px; transition:color 2s ease; }
 
-  .panel-btn { position:absolute; bottom:calc(24px + env(safe-area-inset-bottom,0px)); z-index:30; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:20px; color:#fff; font-size:11px; font-family:-apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:0.12em; text-transform:uppercase; padding:7px 14px; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:background 0.2s; }
-  .panel-btn:hover { background:rgba(255,255,255,0.22); }
+  .panel-btn { position:absolute; bottom:calc(24px + env(safe-area-inset-bottom,0px)); z-index:30; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:20px; color:rgba(255,255,255,0.7); font-size:10px; font-family:-apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:0.14em; text-transform:uppercase; padding:7px 16px; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:background 0.2s; }
+  .panel-btn:hover { background:rgba(255,255,255,0.14); }
   #radar-btn { right:24px; }
   #forecast-btn { left:24px; }
 
@@ -50,12 +50,12 @@
   .ph-sub { font-size:10px; letter-spacing:0.1em; color:rgba(255,255,255,0.2); }
   .panel-body { position:absolute; top:40px; left:0; right:0; bottom:0; overflow:hidden; }
 
-  /* Radar */
   #radar-map { width:100%; height:100%; background:#06080f; }
   #radar-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.25); z-index:10; background:#06080f; }
   .leaflet-control-attribution, .leaflet-bottom.leaflet-right { display:none !important; }
+  .leaflet-control-zoom a { background:rgba(255,255,255,0.08) !important; border-color:rgba(255,255,255,0.12) !important; color:rgba(255,255,255,0.6) !important; }
+  .leaflet-control-zoom a:hover { background:rgba(255,255,255,0.16) !important; }
 
-  /* Forecast */
   #forecast-inner { display:flex; align-items:stretch; height:100%; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
   #forecast-inner::-webkit-scrollbar { display:none; }
   .forecast-day { flex:0 0 100px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:10px 6px; border-right:1px solid rgba(255,255,255,0.05); }
@@ -74,7 +74,7 @@
 <div id="location-screen">
   <h1>Daylight</h1>
   <p>Enter your location to see live sky conditions and weather.</p>
-  <button class="loc-btn" id="gps-btn">⊙ Use My Location</button>
+  <button class="loc-btn" id="gps-btn">Use My Location</button>
   <div id="location-divider">or</div>
   <div id="location-form">
     <input id="location-input" type="text" placeholder="City or zip code" />
@@ -126,8 +126,8 @@
     <div id="weather-display"></div>
     <div id="moon-phase-display"></div>
   </div>
-  <button class="panel-btn" id="forecast-btn">☁ Forecast</button>
-  <button class="panel-btn" id="radar-btn">⦿ Radar</button>
+  <button class="panel-btn" id="forecast-btn">Forecast</button>
+  <button class="panel-btn" id="radar-btn">Radar</button>
 </div>
 
 <script>
@@ -135,15 +135,16 @@ let LAT=null,LON=null,CITY='';
 let weatherState={cloudCover:0,isRain:false,isSnow:false,isFog:false,isThunder:false,temp:null,desc:''};
 let rainDrops=[],snowFlakes=[],lastFlash=0;
 let radarOpen=false,radarLoaded=false,forecastOpen=false,forecastLoaded=false;
+let radarMap=null;
 
 // --- Location ---
 document.getElementById('gps-btn').addEventListener('click',()=>{
   setError('');
-  if(!navigator.geolocation) return setError('Geolocation not supported.');
-  document.getElementById('gps-btn').textContent='⊙ Locating…';
+  if(!navigator.geolocation)return setError('Geolocation not supported.');
+  document.getElementById('gps-btn').textContent='Locating…';
   navigator.geolocation.getCurrentPosition(
     pos=>{LAT=pos.coords.latitude;LON=pos.coords.longitude;launchApp();},
-    ()=>{setError('Location denied. Try entering a city.');document.getElementById('gps-btn').textContent='⊙ Use My Location';}
+    ()=>{setError('Location denied. Try entering a city.');document.getElementById('gps-btn').textContent='Use My Location';}
   );
 });
 document.getElementById('location-submit').addEventListener('click',geocodeInput);
@@ -152,7 +153,7 @@ function setError(m){document.getElementById('location-error').textContent=m;}
 
 async function geocodeInput(){
   const val=document.getElementById('location-input').value.trim();
-  if(!val) return setError('Please enter a city or zip.');
+  if(!val)return setError('Please enter a city or zip.');
   setError('');document.getElementById('location-submit').textContent='…';
   try{
     const res=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=1&language=en&format=json`);
@@ -181,89 +182,106 @@ function closeAll(){
   radarOpen=false;forecastOpen=false;
   document.getElementById('radar-panel').classList.remove('open');
   document.getElementById('forecast-panel').classList.remove('open');
-  document.getElementById('radar-btn').textContent='⦿ Radar';
-  document.getElementById('forecast-btn').textContent='☁ Forecast';
+  document.getElementById('radar-btn').textContent='Radar';
+  document.getElementById('forecast-btn').textContent='Forecast';
 }
 document.getElementById('radar-btn').addEventListener('click',function(){
   if(radarOpen){closeAll();return;}
   closeAll();radarOpen=true;
-  if(!radarLoaded){initRadar();radarLoaded=true;}
   document.getElementById('radar-panel').classList.add('open');
-  this.textContent='✕ Close';
+  this.textContent='Close';
+  if(!radarLoaded){
+    radarLoaded=true;
+    loadLeaflet().then(()=>initRadar());
+  } else if(radarMap){
+    setTimeout(()=>radarMap.invalidateSize(),450);
+  }
 });
 document.getElementById('forecast-btn').addEventListener('click',function(){
   if(forecastOpen){closeAll();return;}
   closeAll();forecastOpen=true;
-  if(!forecastLoaded){fetchForecast();forecastLoaded=true;}
   document.getElementById('forecast-panel').classList.add('open');
-  this.textContent='✕ Close';
+  this.textContent='Close';
+  if(!forecastLoaded){forecastLoaded=true;fetchForecast();}
 });
 
-// --- Radar ---
-function initRadar(){
-  const loading=document.getElementById('radar-loading');
-  const link=document.createElement('link');link.rel='stylesheet';link.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(link);
-  const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';document.head.appendChild(script);
-  script.onload=function(){
-    setTimeout(()=>{
-      const el=document.getElementById('radar-map');
-      el.style.cssText='position:absolute;inset:0;width:100%;height:100%;';
-      const map=L.map(el,{zoomControl:true,attributionControl:false,preferCanvas:true,minZoom:4,maxZoom:9}).setView([LAT,LON],6);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',minZoom:4,maxZoom:9}).addTo(map);
-      fetch('https://api.rainviewer.com/public/weather-maps.json')
-        .then(r=>r.json()).then(data=>{
-          loading.style.display='none';
-          const latest=data.radar.past[data.radar.past.length-1];
-          L.tileLayer(`https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:0.75,minZoom:4,maxZoom:9}).addTo(map);
-          setTimeout(()=>{map.invalidateSize();map.setView([LAT,LON],6);},500);
-        }).catch(()=>{loading.textContent='Radar unavailable';});
-    },300);
-  };
+// --- Leaflet loader ---
+function loadLeaflet(){
+  return new Promise(resolve=>{
+    if(window.L){resolve();return;}
+    const link=document.createElement('link');link.rel='stylesheet';link.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(link);
+    const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    script.onload=resolve;document.head.appendChild(script);
+  });
 }
 
-// --- Forecast icons (SVG, drawn on canvas) ---
-function drawForecastIcon(canvas, code) {
-  const dpr = window.devicePixelRatio||1;
-  canvas.width=32*dpr; canvas.height=32*dpr;
-  canvas.style.width='32px'; canvas.style.height='32px';
-  const c=canvas.getContext('2d');
-  c.scale(dpr,dpr);
-  const cx=16,cy=16;
-  c.strokeStyle='rgba(255,255,255,0.75)';
-  c.fillStyle='rgba(255,255,255,0.75)';
-  c.lineWidth=1.5;
-  c.lineCap='round';
+// --- Radar ---
+async function initRadar(){
+  const loading=document.getElementById('radar-loading');
+  const el=document.getElementById('radar-map');
+  el.style.cssText='position:absolute;inset:0;width:100%;height:100%;';
 
-  if(code===0){ // clear — sun circle + rays
+  // Wait for panel to be visible before init
+  await new Promise(r=>setTimeout(r,420));
+
+  radarMap=L.map(el,{
+    zoomControl:true,
+    attributionControl:false,
+    preferCanvas:true
+  }).setView([LAT,LON],8);
+
+  // Dark base tiles — no zoom cap
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    subdomains:'abcd',
+    maxZoom:18
+  }).addTo(radarMap);
+
+  try{
+    const res=await fetch('https://api.rainviewer.com/public/weather-maps.json');
+    const data=await res.json();
+    loading.style.display='none';
+    const latest=data.radar.past[data.radar.past.length-1];
+    // RainViewer supports zoom 0–12
+    L.tileLayer(`https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`,{
+      opacity:0.75,
+      maxZoom:12,
+      maxNativeZoom:12
+    }).addTo(radarMap);
+    radarMap.invalidateSize();
+  }catch(e){
+    loading.textContent='Radar unavailable';
+  }
+}
+
+// --- Forecast icons ---
+function drawForecastIcon(canvas,code){
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=32*dpr;canvas.height=32*dpr;canvas.style.width='32px';canvas.style.height='32px';
+  const c=canvas.getContext('2d');c.scale(dpr,dpr);
+  const cx=16,cy=16;
+  c.strokeStyle='rgba(255,255,255,0.75)';c.fillStyle='rgba(255,255,255,0.75)';c.lineWidth=1.5;c.lineCap='round';
+  if(code===0){
     c.beginPath();c.arc(cx,cy,5.5,0,Math.PI*2);c.stroke();
-    for(let i=0;i<8;i++){
-      const a=i*Math.PI/4;
-      c.beginPath();c.moveTo(cx+Math.cos(a)*8,cy+Math.sin(a)*8);
-      c.lineTo(cx+Math.cos(a)*11,cy+Math.sin(a)*11);c.stroke();
-    }
-  } else if(code<=2){ // partly cloudy — small sun + cloud
-    c.globalAlpha=0.7;
-    c.beginPath();c.arc(10,10,4,0,Math.PI*2);c.stroke();
+    for(let i=0;i<8;i++){const a=i*Math.PI/4;c.beginPath();c.moveTo(cx+Math.cos(a)*8,cy+Math.sin(a)*8);c.lineTo(cx+Math.cos(a)*11,cy+Math.sin(a)*11);c.stroke();}
+  }else if(code<=2){
+    c.globalAlpha=0.7;c.beginPath();c.arc(10,10,4,0,Math.PI*2);c.stroke();
     for(let i=0;i<6;i++){const a=-Math.PI/6+i*Math.PI/3;c.beginPath();c.moveTo(10+Math.cos(a)*6,10+Math.sin(a)*6);c.lineTo(10+Math.cos(a)*8.5,10+Math.sin(a)*8.5);c.stroke();}
-    c.globalAlpha=1;
-    c.beginPath();c.arc(14,19,4.5,Math.PI,0,false);c.arc(20,19,3.5,Math.PI,0,false);c.arc(22,21,2,0,Math.PI,false);c.arc(11,21,2,0,Math.PI,false);c.closePath();c.stroke();
-  } else if(code<=3){ // overcast — cloud only
+    c.globalAlpha=1;c.beginPath();c.arc(14,19,4.5,Math.PI,0,false);c.arc(20,19,3.5,Math.PI,0,false);c.arc(22,21,2,0,Math.PI,false);c.arc(11,21,2,0,Math.PI,false);c.closePath();c.stroke();
+  }else if(code<=3){
     c.beginPath();c.arc(13,16,5,Math.PI,0,false);c.arc(20,16,4,Math.PI,0,false);c.arc(22,18.5,2.5,0,Math.PI,false);c.arc(10,18.5,2.5,0,Math.PI,false);c.closePath();c.stroke();
-  } else if(code<=49){ // fog — lines
-    for(let i=0;i<4;i++){c.globalAlpha=0.4+i*0.15;c.beginPath();c.moveTo(6,10+i*4);c.lineTo(26,10+i*4);c.stroke();}
-    c.globalAlpha=1;
-  } else if(code<=67||code<=82){ // rain — cloud + drops
+  }else if(code<=49){
+    for(let i=0;i<4;i++){c.globalAlpha=0.4+i*0.15;c.beginPath();c.moveTo(6,10+i*4);c.lineTo(26,10+i*4);c.stroke();}c.globalAlpha=1;
+  }else if(code<=67||code<=82){
     c.beginPath();c.arc(13,13,4.5,Math.PI,0,false);c.arc(19,13,3.5,Math.PI,0,false);c.arc(21,15,2,0,Math.PI,false);c.arc(10,15,2,0,Math.PI,false);c.closePath();c.stroke();
     [[11,21],[16,23],[21,21],[13,25],[19,25]].forEach(([x,y])=>{c.beginPath();c.moveTo(x,y-1.5);c.lineTo(x-1,y+1.5);c.stroke();});
-  } else if(code<=77||code<=86){ // snow — cloud + dots
+  }else if(code<=77||code<=86){
     c.beginPath();c.arc(13,13,4.5,Math.PI,0,false);c.arc(19,13,3.5,Math.PI,0,false);c.arc(21,15,2,0,Math.PI,false);c.arc(10,15,2,0,Math.PI,false);c.closePath();c.stroke();
     [[11,21],[16,23],[21,21],[13,25],[19,25]].forEach(([x,y])=>{c.beginPath();c.arc(x,y,1.5,0,Math.PI*2);c.fill();});
-  } else { // thunderstorm — cloud + bolt
+  }else{
     c.beginPath();c.arc(13,11,4.5,Math.PI,0,false);c.arc(19,11,3.5,Math.PI,0,false);c.arc(21,13,2,0,Math.PI,false);c.arc(10,13,2,0,Math.PI,false);c.closePath();c.stroke();
     c.beginPath();c.moveTo(18,16);c.lineTo(14,22);c.lineTo(17,22);c.lineTo(13,29);c.lineTo(20,21);c.lineTo(17,21);c.lineTo(20,16);c.closePath();c.fill();
   }
 }
-
 function wmoDesc(code){
   if(code===0)return'Clear';if(code<=2)return'Partly Cloudy';if(code===3)return'Overcast';
   if(code<=49)return'Foggy';if(code<=55)return'Drizzle';if(code<=67)return'Rain';
@@ -278,8 +296,7 @@ async function fetchForecast(){
     const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=auto&forecast_days=7`);
     const data=await res.json();
     loading.style.display='none';
-    const container=document.getElementById('forecast-inner');
-    container.innerHTML='';
+    const container=document.getElementById('forecast-inner');container.innerHTML='';
     data.daily.time.forEach((dateStr,i)=>{
       const d=new Date(dateStr+'T12:00:00');
       const dow=i===0?'Today':DAYS[d.getDay()];
@@ -288,9 +305,9 @@ async function fetchForecast(){
       div.innerHTML=`<div class="fc-dow">${dow}</div>`;
       div.appendChild(iconCanvas);
       div.innerHTML+=`<div class="fc-temps"><span class="fc-hi">${Math.round(data.daily.temperature_2m_max[i])}°</span><span class="fc-lo">${Math.round(data.daily.temperature_2m_min[i])}°</span></div><div class="fc-desc">${wmoDesc(data.daily.weather_code[i])}</div>`;
-      div.insertBefore(iconCanvas, div.children[1]);
+      div.insertBefore(iconCanvas,div.children[1]);
       container.appendChild(div);
-      drawForecastIcon(iconCanvas, data.daily.weather_code[i]);
+      drawForecastIcon(iconCanvas,data.daily.weather_code[i]);
     });
   }catch(e){loading.textContent='Forecast unavailable';}
 }
@@ -345,55 +362,31 @@ function getLunarPhase(){
   return((diff%synodic)+synodic)%synodic/synodic;
 }
 function getLunarPhaseName(p){
-  if(p<0.03||p>0.97)return'New Moon';
-  if(p<0.22)return'Waxing Crescent';
-  if(p<0.28)return'First Quarter';
-  if(p<0.47)return'Waxing Gibbous';
-  if(p<0.53)return'Full Moon';
-  if(p<0.72)return'Waning Gibbous';
-  if(p<0.78)return'Last Quarter';
-  return'Waning Crescent';
+  if(p<0.03||p>0.97)return'New Moon';if(p<0.22)return'Waxing Crescent';
+  if(p<0.28)return'First Quarter';if(p<0.47)return'Waxing Gibbous';
+  if(p<0.53)return'Full Moon';if(p<0.72)return'Waning Gibbous';
+  if(p<0.78)return'Last Quarter';return'Waning Crescent';
 }
 function renderMoon(bx,by,sz,opacity){
   const w=window.innerWidth,h=window.innerHeight;
-  mCtx.clearRect(0,0,w,h);
-  if(opacity<=0)return;
+  mCtx.clearRect(0,0,w,h);if(opacity<=0)return;
   const cx=(bx/100)*w,cy=(by/100)*h,r=sz/2;
-  const phase=getLunarPhase();
-  const illum=phase<=0.5?phase*2:(1-phase)*2;
-  const waxing=phase<0.5;
-
-  // Glow
+  const phase=getLunarPhase(),illum=phase<=0.5?phase*2:(1-phase)*2,waxing=phase<0.5;
   const glow=mCtx.createRadialGradient(cx,cy,r*0.8,cx,cy,r*3);
   glow.addColorStop(0,'rgba(210,200,155,0.12)');glow.addColorStop(1,'rgba(210,200,155,0)');
-  mCtx.globalAlpha=opacity;
-  mCtx.beginPath();mCtx.arc(cx,cy,r*3,0,Math.PI*2);mCtx.fillStyle=glow;mCtx.fill();
-
-  // Clip to disc
-  mCtx.save();
-  mCtx.beginPath();mCtx.arc(cx,cy,r,0,Math.PI*2);mCtx.clip();
-
-  // Dark base
+  mCtx.globalAlpha=opacity;mCtx.beginPath();mCtx.arc(cx,cy,r*3,0,Math.PI*2);mCtx.fillStyle=glow;mCtx.fill();
+  mCtx.save();mCtx.beginPath();mCtx.arc(cx,cy,r,0,Math.PI*2);mCtx.clip();
   const dark=mCtx.createRadialGradient(cx+r*0.1,cy-r*0.05,r*0.1,cx,cy,r);
   dark.addColorStop(0,'#1e1e30');dark.addColorStop(1,'#0a0a18');
   mCtx.beginPath();mCtx.arc(cx,cy,r,0,Math.PI*2);mCtx.fillStyle=dark;mCtx.fill();
-
   if(illum>0.02){
     const lit=mCtx.createRadialGradient(cx-r*0.12,cy-r*0.18,r*0.05,cx,cy,r);
-    lit.addColorStop(0,'#fffff2');lit.addColorStop(0.3,'#f0e8c0');
-    lit.addColorStop(0.75,'#d4c07a');lit.addColorStop(1,'#a88840');
+    lit.addColorStop(0,'#fffff2');lit.addColorStop(0.3,'#f0e8c0');lit.addColorStop(0.75,'#d4c07a');lit.addColorStop(1,'#a88840');
     const tR=r*Math.abs(1-illum*2);
     mCtx.save();mCtx.beginPath();
-    if(waxing){
-      mCtx.arc(cx,cy,r,-Math.PI/2,Math.PI/2,false);
-      mCtx.ellipse(cx,cy,tR,r,0,Math.PI/2,-Math.PI/2,illum>=0.5);
-    }else{
-      mCtx.arc(cx,cy,r,Math.PI/2,-Math.PI/2,false);
-      mCtx.ellipse(cx,cy,tR,r,0,-Math.PI/2,Math.PI/2,illum>=0.5);
-    }
+    if(waxing){mCtx.arc(cx,cy,r,-Math.PI/2,Math.PI/2,false);mCtx.ellipse(cx,cy,tR,r,0,Math.PI/2,-Math.PI/2,illum>=0.5);}
+    else{mCtx.arc(cx,cy,r,Math.PI/2,-Math.PI/2,false);mCtx.ellipse(cx,cy,tR,r,0,-Math.PI/2,Math.PI/2,illum>=0.5);}
     mCtx.closePath();mCtx.fillStyle=lit;mCtx.fill();mCtx.restore();
-
-    // Subtle craters
     mCtx.globalAlpha=opacity*0.06;
     [[cx-r*.28,cy+r*.12,r*.14],[cx+r*.15,cy-r*.3,r*.09],[cx-.05*r,cy+r*.42,r*.08],[cx+r*.35,cy+r*.28,r*.11],[cx-r*.45,cy-r*.18,r*.07]].forEach(([x,y,cr])=>{
       const cg=mCtx.createRadialGradient(x,y,0,x,y,cr);cg.addColorStop(0,'rgba(0,0,0,0.9)');cg.addColorStop(1,'rgba(0,0,0,0)');
@@ -490,7 +483,7 @@ function update(){
   const sm=document.getElementById('sun-moon');
 
   if(isMoon){
-    sm.style.cssText=`position:absolute;border-radius:0;width:0;height:0;opacity:0;`;
+    sm.style.cssText='position:absolute;border-radius:0;width:0;height:0;opacity:0;';
     renderMoon(bx,by,bsz,bodyOp);
   }else{
     if(moonCvs)mCtx.clearRect(0,0,window.innerWidth,window.innerHeight);
