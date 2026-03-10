@@ -359,13 +359,12 @@ function renderMoon(bx,by,sz,opacity){
   mX.drawImage(off, cx-r-pad, cy-r-pad, dia, dia);
   mX.restore();
 
-  // Feather the disc edge — radial gradient from transparent at edge inward
-  // This softens the hard circle boundary so it bleeds into the sky
+  // Very subtle edge feather — just softens the hard disc boundary, doesn't darken
   mX.save();
   mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
-  const feather=mX.createRadialGradient(cx,cy,r*0.78,cx,cy,r);
+  const feather=mX.createRadialGradient(cx,cy,r*0.92,cx,cy,r);
   feather.addColorStop(0,'rgba(0,0,0,0)');
-  feather.addColorStop(1,'rgba(0,0,0,0.72)');
+  feather.addColorStop(1,'rgba(0,0,0,0.18)');
   mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=feather;mX.fill();
   mX.restore();
 
