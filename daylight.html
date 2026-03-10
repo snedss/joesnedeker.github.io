@@ -42,7 +42,7 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 .panel-btn:hover{background:rgba(255,255,255,0.14);}
 #radar-btn{right:24px;}
 #forecast-btn{left:24px;}
-  #spotify-panel{position:absolute;top:auto;bottom:calc(70px + env(safe-area-inset-bottom,0px));left:24px;width:300px;height:auto;border-radius:16px;border:1px solid rgba(255,255,255,0.1);transition:opacity 0.3s ease,transform 0.3s ease;opacity:0;pointer-events:none;transform:translateY(8px);}
+  #spotify-panel{position:absolute;top:60px;left:24px;width:300px;height:auto;border-radius:16px;border:1px solid rgba(255,255,255,0.1);transition:opacity 0.3s ease,transform 0.3s ease;opacity:0;pointer-events:none;transform:translateY(-8px);}
   #spotify-panel.open{opacity:1;pointer-events:all;transform:translateY(0);height:auto;}
   #spotify-panel .panel-header{padding:12px 16px 0;}
   #spotify-panel .panel-body{position:relative;top:0;}
@@ -212,7 +212,7 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 
 <script>
 const SPOTIFY_CLIENT_ID='32270ba4e706473da3ecfbf2aee134b4';
-const SPOTIFY_REDIRECT='https://joesnedeker.com';
+const SPOTIFY_REDIRECT='https://joesnedeker.com/daylight.html';
 const SPOTIFY_SCOPES='streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state user-read-currently-playing';
 let spotifyToken=null,spotifyPlayer=null,spotifyDeviceId=null;
 let spState={playing:false,track:null,artist:null,art:null,duration:0,position:0};
