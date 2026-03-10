@@ -271,8 +271,120 @@ async function fetchForecast(){
   }catch(e){loading.textContent='Forecast unavailable';}
 }
 
-// --- Lunar phase ---
-function getLunarPhase() {
+// --- Moon renderer ---
+let moonCanvas = null;
+
+function renderMoon(bx, by, sz, opacity) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = window.innerWidth, H = window.innerHeight;
+
+  if (!moonCanvas) {
+    moonCanvas = document.createElement('canvas');
+    moonCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;';
+    document.getElementById('sky').appendChild(moonCanvas);
+  }
+  moonCanvas.width = W * dpr;
+  moonCanvas.height = H * dpr;
+  moonCanvas.style.width = W + 'px';
+  moonCanvas.style.height = H + 'px';
+  moonCanvas.style.opacity = opacity;
+
+  const ctx = moonCanvas.getContext('2d');
+  ctx.clearRect(0, 0, moonCanvas.width, moonCanvas.height);
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  const cx = (bx / 100) * W;
+  const cy = (by / 100) * H;
+  const r = sz / 2;
+  const phase = getLunarPhase(); // 0=new → 0.5=full → 1=new
+
+  // -- Outer atmospheric glow --
+  const atmosR = r * 3.5;
+  const atmos = ctx.createRadialGradient(cx, cy, r * 0.9, cx, cy, atmosR);
+  atmos.addColorStop(0, 'rgba(210,200,155,0.10)');
+  atmos.addColorStop(1, 'rgba(210,200,155,0)');
+  ctx.beginPath(); ctx.arc(cx, cy, atmosR, 0, Math.PI * 2);
+  ctx.fillStyle = atmos; ctx.fill();
+
+  // Clip everything inside moon circle
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+
+  // -- Dark side (base) --
+  const darkG = ctx.createRadialGradient(cx + r*0.1, cy - r*0.05, r * 0.1, cx, cy, r);
+  darkG.addColorStop(0, '#1e1e30');
+  darkG.addColorStop(1, '#0a0a18');
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = darkG; ctx.fill();
+
+  // -- Lit side --
+  const illum = phase <= 0.5 ? phase * 2 : (1 - phase) * 2; // 0=new, 1=full
+  const waxing = phase < 0.5;
+
+  if (illum > 0.02) {
+    const litG = ctx.createRadialGradient(cx - r*0.12, cy - r*0.18, r * 0.05, cx, cy, r);
+    litG.addColorStop(0, '#fffff2');
+    litG.addColorStop(0.3, '#f0e8c0');
+    litG.addColorStop(0.75, '#d4c07a');
+    litG.addColorStop(1, '#a88840');
+
+    // Terminator ellipse x-radius
+    // illum 0→1: terminator goes from r (new, all dark) → 0 (quarter) → r (full, all lit)
+    const tR = r * Math.abs(1 - illum * 2); // r at 0, 0 at 0.5, r at 1
+
+    ctx.save();
+    ctx.beginPath();
+    if (waxing) {
+      // Lit = right half + terminator curves left (crescent) or right (gibbous)
+      ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
+      if (illum < 0.5) {
+        // crescent — terminator bulges left into lit area
+        ctx.ellipse(cx, cy, tR, r, 0, Math.PI / 2, -Math.PI / 2, false);
+      } else {
+        // gibbous — terminator bulges right, covering more
+        ctx.ellipse(cx, cy, tR, r, 0, Math.PI / 2, -Math.PI / 2, true);
+      }
+    } else {
+      // Lit = left half
+      ctx.arc(cx, cy, r, Math.PI / 2, -Math.PI / 2, false);
+      if (illum < 0.5) {
+        ctx.ellipse(cx, cy, tR, r, 0, -Math.PI / 2, Math.PI / 2, false);
+      } else {
+        ctx.ellipse(cx, cy, tR, r, 0, -Math.PI / 2, Math.PI / 2, true);
+      }
+    }
+    ctx.closePath();
+    ctx.fillStyle = litG;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // -- Subtle surface texture (craters implied by soft shading) --
+  if (illum > 0.05) {
+    ctx.globalAlpha = 0.07;
+    [[cx - r*0.28, cy + r*0.12, r*0.14], [cx + r*0.15, cy - r*0.3, r*0.09],
+     [cx - r*0.05, cy + r*0.42, r*0.08], [cx + r*0.35, cy + r*0.28, r*0.11],
+     [cx - r*0.45, cy - r*0.18, r*0.07]].forEach(([x,y,cr])=>{
+      const cg = ctx.createRadialGradient(x, y, 0, x, y, cr);
+      cg.addColorStop(0, 'rgba(0,0,0,0.8)');
+      cg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(x, y, cr, 0, Math.PI*2);
+      ctx.fillStyle = cg; ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore(); // unclip
+
+  // -- Sharp limb edge --
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(180,165,120,0.12)';
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+
+  ctx.restore();
+}
   const known = new Date('2000-01-06T18:14:00Z');
   const synodic = 29.53058867;
   const diff = (new Date() - known) / 86400000;
@@ -421,9 +533,11 @@ function update(){
   sm.style.left=`calc(${bx}% - ${bsz/2}px)`;sm.style.top=`calc(${by}% - ${bsz/2}px)`;
   sm.style.width=sm.style.height=`${bsz}px`;sm.style.opacity=bodyOp;
   if(isMoon){
-    sm.style.background=bcol;
-    sm.style.boxShadow=`0 0 ${bsz*0.6}px ${bcol}, 0 0 ${bsz*1.4}px rgba(220,210,180,0.25)`;
-    sm.style.filter='blur(0.5px)';
+    sm.style.background='none';
+    sm.style.boxShadow='none';
+    sm.style.filter='none';
+    sm.style.borderRadius='0';
+    renderMoon(bx, by, bsz, bodyOp);
   }else{
     sm.style.background=`radial-gradient(circle at 40% 38%, #fffde0, ${bcol})`;
     sm.style.boxShadow=`0 0 ${bsz}px ${bcol}, 0 0 ${bsz*2}px rgba(255,200,80,0.5), 0 0 ${bsz*4}px rgba(255,160,40,0.2)`;
