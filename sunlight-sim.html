@@ -99,39 +99,52 @@ let radarOpen = false;
 let radarLoaded = false;
 
 function initRadar() {
-  // Load Leaflet
+  const loading = document.getElementById('radar-loading');
+
+  // Inject Leaflet CSS
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
   document.head.appendChild(link);
 
+  // Inject Leaflet JS, then build map on load
   const script = document.createElement('script');
   script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-  script.onload = () => {
-    const map = L.map('radar-map', { zoomControl: false, attributionControl: false })
-      .setView([39.9526, -75.1652], 7);
-
-    // Dark base tile
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 12
-    }).addTo(map);
-
-    // RainViewer radar overlay
-    fetch('https://api.rainviewer.com/public/weather-maps.json')
-      .then(r => r.json())
-      .then(data => {
-        document.getElementById('radar-loading').style.display = 'none';
-        const frames = data.radar.past;
-        const latest = frames[frames.length - 1];
-        L.tileLayer(`https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`, {
-          opacity: 0.7, maxZoom: 12
-        }).addTo(map);
-      })
-      .catch(() => {
-        document.getElementById('radar-loading').textContent = 'Radar unavailable';
-      });
-  };
   document.head.appendChild(script);
+
+  script.onload = function() {
+    // Give the panel a tick to finish rendering before initializing map
+    setTimeout(() => {
+      const mapEl = document.getElementById('radar-map');
+      mapEl.style.position = 'absolute';
+      mapEl.style.inset = '0';
+
+      const map = L.map(mapEl, {
+        zoomControl: true,
+        attributionControl: false,
+        preferCanvas: true
+      }).setView([39.9526, -75.1652], 7);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd', maxZoom: 12
+      }).addTo(map);
+
+      fetch('https://api.rainviewer.com/public/weather-maps.json')
+        .then(r => r.json())
+        .then(data => {
+          loading.style.display = 'none';
+          const frames = data.radar.past;
+          const latest = frames[frames.length - 1];
+          L.tileLayer(
+            `https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`,
+            { opacity: 0.75, maxZoom: 12 }
+          ).addTo(map);
+          // Force map to recalculate size after panel open animation
+          setTimeout(() => map.invalidateSize(), 450);
+        })
+        .catch(() => { loading.textContent = 'Radar unavailable'; });
+    }, 100);
+  };
 }
 
 document.getElementById('radar-btn').addEventListener('click', function() {
