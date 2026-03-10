@@ -359,21 +359,15 @@ function renderMoon(bx,by,sz,opacity){
   mX.drawImage(off, cx-r-pad, cy-r-pad, dia, dia);
   mX.restore();
 
-  // Very subtle edge feather — just softens the hard disc boundary, doesn't darken
-  mX.save();
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
-  const feather=mX.createRadialGradient(cx,cy,r*0.92,cx,cy,r);
-  feather.addColorStop(0,'rgba(0,0,0,0)');
-  feather.addColorStop(1,'rgba(0,0,0,0.18)');
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=feather;mX.fill();
-  mX.restore();
 
-  // Second outer glow pass — wider, softer, bleeds into sky
-  const glow2=mX.createRadialGradient(cx,cy,r,cx,cy,r*5);
-  glow2.addColorStop(0,`rgba(210,195,145,${0.07+illum*0.06})`);
-  glow2.addColorStop(0.4,'rgba(210,195,145,0.025)');
+
+  // Wide atmospheric glow — blends moon into sky
+  const glow2=mX.createRadialGradient(cx,cy,r*0.9,cx,cy,r*6);
+  glow2.addColorStop(0,`rgba(210,195,145,${0.15+illum*0.1})`);
+  glow2.addColorStop(0.25,`rgba(210,195,145,${0.06+illum*0.04})`);
+  glow2.addColorStop(0.6,'rgba(210,195,145,0.02)');
   glow2.addColorStop(1,'rgba(210,195,145,0)');
-  mX.beginPath();mX.arc(cx,cy,r*5,0,Math.PI*2);mX.fillStyle=glow2;mX.fill();
+  mX.beginPath();mX.arc(cx,cy,r*6,0,Math.PI*2);mX.fillStyle=glow2;mX.fill();
 
   mX.restore();
 }
