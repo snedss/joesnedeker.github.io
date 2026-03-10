@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Daylight</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+  html { height: 100%; height: -webkit-fill-available; }
+  body { width: 100vw; height: 100vh; height: 100dvh; height: -webkit-fill-available; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
 
   /* Location prompt */
   #location-screen {
@@ -237,7 +238,7 @@ function initRadar() {
       const mapEl = document.getElementById('radar-map');
       mapEl.style.position='absolute'; mapEl.style.inset='0';
       mapEl.style.width='100%'; mapEl.style.height='100%';
-      leafletMap = L.map(mapEl, { zoomControl:true, attributionControl:false, preferCanvas:true })
+      leafletMap = L.map(mapEl, { zoomControl:true, attributionControl:false, preferCanvas:true, minZoom:3, maxZoom:12 })
         .setView([LAT, LON], 7);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom:12 }).addTo(leafletMap);
       fetch('https://api.rainviewer.com/public/weather-maps.json')
@@ -257,8 +258,12 @@ function initRadar() {
 const starsCanvas=document.getElementById('stars'), sCtx=starsCanvas.getContext('2d');
 let stars=[];
 function initStars() {
-  starsCanvas.width=window.innerWidth; starsCanvas.height=window.innerHeight;
-  stars=Array.from({length:180},()=>({x:Math.random()*starsCanvas.width,y:Math.random()*starsCanvas.height*0.75,r:Math.random()*1.2+0.3,a:Math.random()}));
+  const dpr = window.devicePixelRatio || 1;
+  const w = window.innerWidth, h = window.innerHeight;
+  starsCanvas.width = w * dpr; starsCanvas.height = h * dpr;
+  starsCanvas.style.width = w + 'px'; starsCanvas.style.height = h + 'px';
+  sCtx.scale(dpr, dpr);
+  stars = Array.from({length:180}, () => ({x:Math.random()*w, y:Math.random()*h*0.75, r:Math.random()*1.2+0.3, a:Math.random()}));
 }
 function drawStars(op) {
   sCtx.clearRect(0,0,starsCanvas.width,starsCanvas.height);
@@ -268,7 +273,13 @@ function drawStars(op) {
 
 // --- Precip ---
 const pCanvas=document.getElementById('rain-canvas'), pCtx=pCanvas.getContext('2d');
-function initPCanvas(){pCanvas.width=window.innerWidth;pCanvas.height=window.innerHeight;}
+function initPCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = window.innerWidth, h = window.innerHeight;
+  pCanvas.width = w * dpr; pCanvas.height = h * dpr;
+  pCanvas.style.width = w + 'px'; pCanvas.style.height = h + 'px';
+  pCtx.scale(dpr, dpr);
+}
 function spawnRain(n){for(let i=0;i<n;i++)rainDrops.push({x:Math.random()*pCanvas.width,y:Math.random()*pCanvas.height,len:Math.random()*14+6,speed:Math.random()*6+10,op:Math.random()*0.4+0.2});}
 function spawnSnow(n){for(let i=0;i<n;i++)snowFlakes.push({x:Math.random()*pCanvas.width,y:Math.random()*pCanvas.height,r:Math.random()*2.5+1,speed:Math.random()*1.5+0.5,drift:Math.random()*0.8-0.4,op:Math.random()*0.6+0.3});}
 function animatePrecip() {
