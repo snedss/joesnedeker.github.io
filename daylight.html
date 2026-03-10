@@ -323,23 +323,22 @@ function renderMoon(bx,by,sz,opacity){
       const lx=(waxing?1:-1)*Math.sin(angle);
       const lz=Math.cos(angle);
 
-      // Diffuse lighting — wide soft terminator
+      // Diffuse lighting — terminator soft but visible
       let dot=nx*lx+nz*lz;
-      // Spread the transition over a wide band so it's a gradual fade
-      const soft=0.55;
+      const soft=0.18;
       let diff=(dot+soft)/(soft*2);
       diff=Math.max(0,Math.min(1,diff));
-      diff=diff*diff*(3-2*diff); // smoothstep for gentle S-curve
+      diff=diff*diff*(3-2*diff); // smoothstep
 
       // Limb darkening
       const limb=nz*0.5+0.5;
 
-      // Unlit side: faint deep blue-grey earthshine, not black
+      // Unlit side: faint earthshine blue-grey, not black
       const base=diff*limb;
-      const unlit=0.06+nz*0.04; // faint spherical sheen on dark side
-      const r_=Math.round(215*base + (18+unlit*40)*(1-base));
-      const g_=Math.round(200*base + (20+unlit*38)*(1-base));
-      const b_=Math.round(155*base + (38+unlit*50)*(1-base));
+      const es=nz*0.05; // earthshine — faint spherical sheen on dark side
+      const r_=Math.round(215*base + (14+es*30)*(1-base));
+      const g_=Math.round(200*base + (16+es*28)*(1-base));
+      const b_=Math.round(155*base + (32+es*40)*(1-base));
 
       const i=(py*res+px)*4;
       data[i]=r_; data[i+1]=g_; data[i+2]=b_; data[i+3]=255;
