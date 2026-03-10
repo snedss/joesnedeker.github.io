@@ -353,11 +353,29 @@ function renderMoon(bx,by,sz,opacity){
   }
   ox.putImageData(img,0,0);
 
+  // Draw sphere — clip to disc
   mX.save();
   mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
-  // Draw at logical size — browser downsamples from dpr*size → size, giving smooth AA
   mX.drawImage(off, cx-r-pad, cy-r-pad, dia, dia);
   mX.restore();
+
+  // Feather the disc edge — radial gradient from transparent at edge inward
+  // This softens the hard circle boundary so it bleeds into the sky
+  mX.save();
+  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
+  const feather=mX.createRadialGradient(cx,cy,r*0.78,cx,cy,r);
+  feather.addColorStop(0,'rgba(0,0,0,0)');
+  feather.addColorStop(1,'rgba(0,0,0,0.72)');
+  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=feather;mX.fill();
+  mX.restore();
+
+  // Second outer glow pass — wider, softer, bleeds into sky
+  const glow2=mX.createRadialGradient(cx,cy,r,cx,cy,r*5);
+  glow2.addColorStop(0,`rgba(210,195,145,${0.07+illum*0.06})`);
+  glow2.addColorStop(0.4,'rgba(210,195,145,0.025)');
+  glow2.addColorStop(1,'rgba(210,195,145,0)');
+  mX.beginPath();mX.arc(cx,cy,r*5,0,Math.PI*2);mX.fillStyle=glow2;mX.fill();
+
   mX.restore();
 }
 
