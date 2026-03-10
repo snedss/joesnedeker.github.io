@@ -32,7 +32,7 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 .cloud{position:absolute;border-radius:50%;filter:blur(22px);transition:opacity 4s ease,background 4s ease;}
 #fog-overlay{position:absolute;inset:0;pointer-events:none;transition:opacity 3s ease;z-index:4;}
 
-#info{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;user-select:none;white-space:nowrap;z-index:10;}
+  #info{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;user-select:none;white-space:nowrap;z-index:10;}
 #time-display{font-size:15px;font-weight:500;letter-spacing:0.08em;opacity:0.8;transition:color 2s ease;}
 #phase-display{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.5;margin-top:3px;transition:color 2s ease;}
 #weather-display{font-size:11px;letter-spacing:0.08em;opacity:0.55;margin-top:2px;transition:color 2s ease;}
@@ -42,7 +42,7 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 .panel-btn:hover{background:rgba(255,255,255,0.14);}
 #radar-btn{right:24px;}
 #forecast-btn{left:24px;}
-#spotify-btn{left:50%;transform:translateX(-50%);}
+  #spotify-btn{left:50%;transform:translateX(-50%);bottom:calc(62px + env(safe-area-inset-bottom,0px));}
 
 .slide-panel{position:absolute;bottom:0;left:0;right:0;height:0;overflow:hidden;z-index:25;transition:height 0.4s cubic-bezier(0.4,0,0.2,1);background:rgba(8,10,22,0.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,0.07);}
 .slide-panel.open{height:46%;}
@@ -220,20 +220,28 @@ let rain=[],snow=[],lastFlash=0;
 let radarOpen=false,radarLoaded=false,forecastOpen=false,forecastLoaded=false,spotifyOpen=false,rMap=null;
 
 // --- Spotify Auth ---
-function spLogin(){
-  const state=Math.random().toString(36).slice(2);
-  sessionStorage.setItem('sp_state',state);
-  const url=`https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT)}&scope=${encodeURIComponent(SPOTIFY_SCOPES)}&state=${state}`;
+async function spLogin(){
+  const verifier=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
+  sessionStorage.setItem('sp_verifier',verifier);
+  const hashed=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier));
+  const challenge=btoa(String.fromCharCode(...new Uint8Array(hashed))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const url=`https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT)}&scope=${encodeURIComponent(SPOTIFY_SCOPES)}&code_challenge_method=S256&code_challenge=${challenge}`;
   window.location.href=url;
 }
-function spHandleCallback(){
-  const hash=window.location.hash.slice(1);
-  if(!hash)return;
-  const p=new URLSearchParams(hash);
-  const token=p.get('access_token');
-  if(!token)return;
-  spotifyToken=token;
+async function spHandleCallback(){
+  const params=new URLSearchParams(window.location.search);
+  const code=params.get('code');
+  if(!code)return;
   window.history.replaceState(null,'',window.location.pathname);
+  const verifier=sessionStorage.getItem('sp_verifier');
+  const res=await fetch('https://accounts.spotify.com/api/token',{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:SPOTIFY_REDIRECT,client_id:SPOTIFY_CLIENT_ID,code_verifier:verifier})
+  });
+  const data=await res.json();
+  if(!data.access_token)return;
+  spotifyToken=data.access_token;
   spInitPlayer();
 }
 function spInitPlayer(){
