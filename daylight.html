@@ -296,73 +296,69 @@ function renderMoon(bx,by,sz,opacity){
   if(opacity<=0)return;
   const cx=bx/100*w, cy=by/100*h, r=sz/2;
   const phase=lunarPhase();
-  const illum=phase<=0.5?phase*2:(1-phase)*2;
+  const illum=phase<=0.5?phase*2:(1-phase)*2; // 0=new,1=full
   const waxing=phase<0.5;
 
-  // Render at 4x supersampling then scale down for smooth edges
-  const SS=4;
-  const res=Math.ceil(r*2+4);
-  const off=document.createElement('canvas');
-  off.width=res*SS;off.height=res*SS;
-  const ox=off.getContext('2d');
-  const cr=r*SS, ccx=res*SS/2, ccy=res*SS/2;
-
-  const img=ox.createImageData(res*SS,res*SS);
-  const data=img.data;
-
-  for(let py=0;py<res*SS;py++){
-    for(let px=0;px<res*SS;px++){
-      const nx=(px-ccx)/cr, ny=(py-ccy)/cr;
-      const d2=nx*nx+ny*ny;
-      if(d2>1) continue;
-      const nz=Math.sqrt(1-d2);
-
-      // Light direction: at illum=1 (full) light is straight on (lx=0,lz=1)
-      // At illum=0 (new) light is fully to the side (lx=±1,lz=0)
-      // waxing: light from right (+x), waning: light from left (-x)
-      const angle=(1-illum)*Math.PI*0.5;
-      const lx=(waxing?1:-1)*Math.sin(angle);
-      const lz=Math.cos(angle);
-
-      // Diffuse lighting — terminator soft but visible
-      let dot=nx*lx+nz*lz;
-      const soft=0.18;
-      let diff=(dot+soft)/(soft*2);
-      diff=Math.max(0,Math.min(1,diff));
-      diff=diff*diff*(3-2*diff); // smoothstep
-
-      // Limb darkening
-      const limb=nz*0.5+0.5;
-
-      // Unlit side: faint earthshine blue-grey, not black
-      const base=diff*limb;
-      const es=nz*0.05; // earthshine — faint spherical sheen on dark side
-      const r_=Math.round(215*base + (14+es*30)*(1-base));
-      const g_=Math.round(200*base + (16+es*28)*(1-base));
-      const b_=Math.round(155*base + (32+es*40)*(1-base));
-
-      const i=(py*res*SS+px)*4;
-      data[i]=r_; data[i+1]=g_; data[i+2]=b_; data[i+3]=255;
-    }
-  }
-  ox.putImageData(img,0,0);
-
-  // Now draw to main canvas
   mX.save();
   mX.globalAlpha=opacity;
 
   // Glow
-  const glow=mX.createRadialGradient(cx,cy,r*0.85,cx,cy,r*3.5);
-  glow.addColorStop(0,`rgba(215,200,155,${0.08+illum*0.12})`);
-  glow.addColorStop(1,'rgba(215,200,155,0)');
+  const glow=mX.createRadialGradient(cx,cy,r*0.8,cx,cy,r*3.5);
+  glow.addColorStop(0,`rgba(220,208,160,${0.1+illum*0.1})`);
+  glow.addColorStop(1,'rgba(220,208,160,0)');
   mX.beginPath();mX.arc(cx,cy,r*3.5,0,Math.PI*2);mX.fillStyle=glow;mX.fill();
 
-  // Draw sphere with clip
   mX.save();
   mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
-  mX.drawImage(off,cx-r-1,cy-r-1,res,res);
-  mX.restore();
 
+  // 1. Dark base (earthshine — very faint, not black)
+  const darkGrad=mX.createRadialGradient(cx-r*0.1,cy-r*0.15,0,cx,cy,r);
+  darkGrad.addColorStop(0,'#1a1e32');
+  darkGrad.addColorStop(1,'#0c0f1e');
+  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=darkGrad;mX.fill();
+
+  // 2. Lit surface — paint the illuminated portion using path geometry
+  //    Terminator is an ellipse whose x-radius scales with illumination:
+  //    illum=0: ellipse x=r (semicircle, dark half), illum=1: ellipse x=0 (full disc lit)
+  //    We draw the lit region as a path: one semicircle arc + one ellipse arc
+  const litGrad=mX.createRadialGradient(cx-r*0.08,cy-r*0.12,r*0.05,cx,cy,r);
+  litGrad.addColorStop(0,'#fefce8');
+  litGrad.addColorStop(0.3,'#f0e8c0');
+  litGrad.addColorStop(0.7,'#d4c078');
+  litGrad.addColorStop(1,'#a07838');
+  mX.fillStyle=litGrad;
+
+  // Terminator ellipse x-radius: 0 at full, r at new, negative flips which side is lit
+  const tx = r*(1-illum*2); // goes from r (new,dark) → 0 (quarter) → -r (full from other side)
+
+  mX.beginPath();
+  if(waxing){
+    // Lit on right: right semicircle + terminator ellipse closing left
+    mX.arc(cx,cy,r,-Math.PI/2,Math.PI/2,false);
+    mX.ellipse(cx,cy,Math.abs(tx),r,0,Math.PI/2,-Math.PI/2,tx>0);
+  }else{
+    // Lit on left: left semicircle + terminator ellipse closing right
+    mX.arc(cx,cy,r,Math.PI/2,-Math.PI/2,false);
+    mX.ellipse(cx,cy,Math.abs(tx),r,0,-Math.PI/2,Math.PI/2,tx<0);
+  }
+  mX.closePath();mX.fill();
+
+  // 3. Soft terminator blend — radial gradient straddling the terminator edge
+  //    to soften the hard ellipse boundary slightly
+  const tEdgeX = cx + (waxing ? -tx : tx) * (waxing ? 1 : -1);
+  const blur = mX.createRadialGradient(tEdgeX, cy, 0, tEdgeX, cy, r*0.45);
+  blur.addColorStop(0,'rgba(12,15,30,0)');
+  blur.addColorStop(0.5,'rgba(12,15,30,0.45)');
+  blur.addColorStop(1,'rgba(12,15,30,0)');
+  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=blur;mX.fill();
+
+  // 4. Limb darkening ring
+  const limb=mX.createRadialGradient(cx,cy,r*0.5,cx,cy,r);
+  limb.addColorStop(0,'rgba(0,0,0,0)');
+  limb.addColorStop(1,'rgba(0,0,0,0.32)');
+  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.fillStyle=limb;mX.fill();
+
+  mX.restore();
   mX.restore();
 }
 
