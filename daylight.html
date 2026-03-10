@@ -35,6 +35,7 @@
   #time-display { font-size:15px; font-weight:500; letter-spacing:0.08em; opacity:0.8; transition:color 2s ease; }
   #phase-display { font-size:11px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.5; margin-top:3px; transition:color 2s ease; }
   #weather-display { font-size:11px; letter-spacing:0.08em; opacity:0.55; margin-top:2px; transition:color 2s ease; }
+  #moon-display { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.35; margin-top:2px; transition:color 2s ease; }
 
   .panel-btn { position:absolute; bottom:calc(24px + env(safe-area-inset-bottom,0px)); z-index:30; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:20px; color:#fff; font-size:11px; font-family:-apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:0.12em; text-transform:uppercase; padding:7px 14px; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:background 0.2s; }
   .panel-btn:hover { background:rgba(255,255,255,0.22); }
@@ -54,11 +55,12 @@
   .leaflet-control-attribution, .leaflet-bottom.leaflet-right { display:none !important; }
 
   /* Forecast */
-  #forecast-inner { display:flex; align-items:stretch; height:100%; }
-  .forecast-day { flex:1; min-width:90px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; padding:10px 6px; border-right:1px solid rgba(255,255,255,0.05); }
+  #forecast-inner { display:flex; align-items:stretch; height:100%; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  #forecast-inner::-webkit-scrollbar { display:none; }
+  .forecast-day { flex:0 0 100px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; padding:10px 6px; border-right:1px solid rgba(255,255,255,0.05); }
   .forecast-day:last-child { border-right:none; }
   .fc-dow { font-size:10px; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.4); }
-  .fc-icon { font-size:26px; line-height:1; }
+  .fc-icon { font-size:15px; letter-spacing:0.05em; color:rgba(255,255,255,0.7); }
   .fc-temps { display:flex; align-items:baseline; gap:6px; }
   .fc-hi { font-size:20px; font-weight:300; color:rgba(255,255,255,0.9); }
   .fc-lo { font-size:13px; font-weight:300; color:rgba(255,255,255,0.3); }
@@ -120,6 +122,7 @@
     <div id="time-display"></div>
     <div id="phase-display"></div>
     <div id="weather-display"></div>
+    <div id="moon-display"></div>
   </div>
   <button class="panel-btn" id="forecast-btn">☁ Forecast</button>
   <button class="panel-btn" id="radar-btn">⦿ Radar</button>
@@ -217,17 +220,17 @@ function initRadar(){
 
 // --- Forecast ---
 function wmoIcon(code){
-  if(code===0) return'☀️';
-  if(code<=2) return'⛅';
-  if(code===3) return'☁️';
-  if(code<=49) return'🌫️';
-  if(code<=55) return'🌦️';
-  if(code<=67) return'🌧️';
-  if(code<=77) return'❄️';
-  if(code<=82) return'🌦️';
-  if(code<=86) return'🌨️';
-  if(code<=99) return'⛈️';
-  return'☁️';
+  if(code===0) return '—';
+  if(code<=2) return '◑';
+  if(code===3) return '●';
+  if(code<=49) return '≋';
+  if(code<=55) return '·';
+  if(code<=67) return '⋮';
+  if(code<=77) return '*';
+  if(code<=82) return '⋮';
+  if(code<=86) return '*';
+  if(code<=99) return '↯';
+  return '●';
 }
 function wmoDesc(code){
   if(code===0) return'Clear';
@@ -268,7 +271,24 @@ async function fetchForecast(){
   }catch(e){loading.textContent='Forecast unavailable';}
 }
 
-// --- Stars ---
+// --- Lunar phase ---
+function getLunarPhase() {
+  const known = new Date('2000-01-06T18:14:00Z');
+  const synodic = 29.53058867;
+  const diff = (new Date() - known) / 86400000;
+  return ((diff % synodic) + synodic) % synodic / synodic;
+}
+function getLunarPhaseName() {
+  const p = getLunarPhase();
+  if (p < 0.03 || p > 0.97) return 'New Moon';
+  if (p < 0.22) return 'Waxing Crescent';
+  if (p < 0.28) return 'First Quarter';
+  if (p < 0.47) return 'Waxing Gibbous';
+  if (p < 0.53) return 'Full Moon';
+  if (p < 0.72) return 'Waning Gibbous';
+  if (p < 0.78) return 'Last Quarter';
+  return 'Waning Crescent';
+}
 const starsCanvas=document.getElementById('stars'),sCtx=starsCanvas.getContext('2d');
 let stars=[];
 function initStars(){
@@ -430,6 +450,10 @@ function update(){
   document.getElementById('phase-display').textContent=phase;
   const tempStr=weatherState.temp!==null?` · ${weatherState.temp}°F`:'';
   document.getElementById('weather-display').textContent=weatherState.desc?`${weatherState.desc}${tempStr}`:'';
+  const moonEl=document.getElementById('moon-display');
+  const isNightNow=hf<6||hf>19;
+  moonEl.style.color=textCol;
+  moonEl.textContent=isNightNow?getLunarPhaseName():'';
 }
 
 window.addEventListener('resize',()=>{initStars();initPCanvas();});
