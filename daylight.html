@@ -33,7 +33,7 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 .cloud{position:absolute;border-radius:50%;filter:blur(22px);transition:opacity 4s ease,background 4s ease;}
 #fog-overlay{position:absolute;inset:0;pointer-events:none;transition:opacity 3s ease;z-index:4;}
 
-  #info{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;user-select:none;white-space:nowrap;z-index:10;}
+#info{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;user-select:none;white-space:nowrap;z-index:10;}
 #time-display{font-size:15px;font-weight:500;letter-spacing:0.08em;opacity:0.8;transition:color 2s ease;}
 #phase-display{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.5;margin-top:3px;transition:color 2s ease;}
 #weather-display{font-size:11px;letter-spacing:0.08em;opacity:0.55;margin-top:2px;transition:color 2s ease;}
@@ -43,11 +43,13 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 .panel-btn:hover{background:rgba(255,255,255,0.14);}
 #radar-btn{right:24px;}
 #forecast-btn{left:24px;}
-  #spotify-panel{position:absolute;top:60px;left:24px;width:300px;max-height:260px;height:auto;border-radius:16px;border:1px solid rgba(255,255,255,0.1);transition:opacity 0.3s ease,transform 0.3s ease;opacity:0;pointer-events:none;transform:translateY(-8px);}
-  #spotify-panel.open{opacity:1;pointer-events:all;transform:translateY(0);}
-  #spotify-panel .panel-header{padding:12px 16px 0;}
-  #spotify-panel .panel-body{position:relative;top:0;overflow:hidden;}
-  #sp-results{max-height:80px;}
+#spotify-btn{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));left:24px;bottom:auto;z-index:30;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-radius:20px;color:rgba(255,255,255,0.6);font-size:10px;font-family:inherit;letter-spacing:0.14em;text-transform:uppercase;padding:7px 16px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background 0.2s;}
+#spotify-btn:hover{background:rgba(255,255,255,0.14);}
+
+#spotify-panel{position:absolute;top:calc(52px + env(safe-area-inset-top,0px));left:24px;width:300px;border-radius:16px;border:1px solid rgba(255,255,255,0.1);background:rgba(8,10,22,0.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:opacity 0.3s ease,transform 0.3s ease;opacity:0;pointer-events:none;transform:translateY(-8px);z-index:25;overflow:hidden;}
+#spotify-panel.open{opacity:1;pointer-events:all;transform:translateY(0);}
+#spotify-panel .panel-header{padding:12px 16px 0;}
+#spotify-panel .panel-body{position:relative;padding-bottom:14px;}
 
 .slide-panel{position:absolute;bottom:0;left:0;right:0;height:0;overflow:hidden;z-index:25;transition:height 0.4s cubic-bezier(0.4,0,0.2,1);background:rgba(8,10,22,0.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,0.07);}
 .slide-panel.open{height:46%;}
@@ -73,12 +75,11 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 .fc-desc{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.22);text-align:center;line-height:1.5;}
 #forecast-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.25);}
 
-/* Spotify */
-#sp-login{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;}
+#sp-login{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:14px;}
 #sp-login p{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.28);}
 #sp-login-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:24px;color:#fff;font-size:11px;font-family:inherit;letter-spacing:0.14em;text-transform:uppercase;padding:9px 28px;cursor:pointer;transition:background 0.2s;}
 #sp-login-btn:hover{background:rgba(255,255,255,0.18);}
-#sp-player{display:none;flex-direction:column;height:100%;padding:12px 20px 14px;}
+#sp-player{display:none;flex-direction:column;padding:12px 16px 0;}
 #sp-track-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 #sp-art{width:42px;height:42px;border-radius:4px;background:rgba(255,255,255,0.06);flex-shrink:0;object-fit:cover;}
 #sp-meta{flex:1;min-width:0;}
@@ -93,12 +94,12 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
 #sp-total{text-align:right;}
 #sp-bar-bg{flex:1;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;cursor:pointer;position:relative;}
 #sp-bar-fill{height:100%;background:rgba(255,255,255,0.65);border-radius:2px;width:0%;}
-#sp-search-row{display:flex;gap:8px;}
+#sp-search-row{display:flex;gap:8px;margin-bottom:10px;}
 #sp-search{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:20px;color:#fff;font-size:11px;padding:7px 14px;outline:none;font-family:inherit;}
 #sp-search::placeholder{color:rgba(255,255,255,0.2);}
 #sp-search-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;color:rgba(255,255,255,0.55);font-size:10px;font-family:inherit;letter-spacing:0.1em;text-transform:uppercase;padding:7px 14px;cursor:pointer;white-space:nowrap;transition:background 0.2s;}
 #sp-search-btn:hover{background:rgba(255,255,255,0.14);}
-#sp-results{margin-top:10px;overflow-y:auto;flex:1;scrollbar-width:none;}
+#sp-results{max-height:160px;overflow-y:auto;scrollbar-width:none;}
 #sp-results::-webkit-scrollbar{display:none;}
 .sp-result{display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;border-radius:4px;transition:background 0.15s;}
 .sp-result:hover{background:rgba(255,255,255,0.06);}
@@ -158,12 +159,13 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
     </div>
   </div>
 
-  <div class="slide-panel" id="spotify-panel">
-    <div class="panel-header">
+  <!-- Music panel: dropdown from top-left button -->
+  <div id="spotify-panel">
+    <div class="panel-header" style="padding:12px 16px 8px;">
       <span class="ph-title">Music</span>
       <span class="ph-sub" id="sp-status"></span>
     </div>
-    <div class="panel-body">
+    <div class="panel-body" style="position:relative;top:0;">
       <div id="sp-login">
         <p>Connect your Spotify account</p>
         <button id="sp-login-btn">Connect Spotify</button>
@@ -207,9 +209,10 @@ body{width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:-apple-s
     <div id="weather-display"></div>
     <div id="moon-phase-display"></div>
   </div>
+
   <button class="panel-btn" id="forecast-btn">Forecast</button>
-  <button class="panel-btn" id="spotify-btn">Music</button>
   <button class="panel-btn" id="radar-btn">Radar</button>
+  <button id="spotify-btn">Music</button>
 </div>
 
 <script>
@@ -224,7 +227,6 @@ let wx={cloudCover:0,isRain:false,isSnow:false,isFog:false,isThunder:false,temp:
 let rain=[],snow=[],lastFlash=0;
 let radarOpen=false,radarLoaded=false,forecastOpen=false,forecastLoaded=false,spotifyOpen=false,rMap=null;
 
-// --- Spotify Auth ---
 async function spLogin(){
   const verifier=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
   sessionStorage.setItem('sp_verifier',verifier);
@@ -269,14 +271,7 @@ function spInitPlayer(){
     spotifyPlayer.addListener('player_state_changed',st=>{
       if(!st)return;
       const t=st.track_window.current_track;
-      spState={
-        playing:!st.paused,
-        track:t.name,
-        artist:t.artists.map(a=>a.name).join(', '),
-        art:t.album.images[0]?.url||'',
-        duration:st.duration,
-        position:st.position
-      };
+      spState={playing:!st.paused,track:t.name,artist:t.artists.map(a=>a.name).join(', '),art:t.album.images[0]?.url||'',duration:st.duration,position:st.position};
       spUpdateUI();
     });
     spotifyPlayer.connect();
@@ -293,17 +288,10 @@ function spUpdateUI(){
   document.getElementById('sp-artist').textContent=spState.artist||'';
   if(spState.art)document.getElementById('sp-art').src=spState.art;
   const playIcon=document.getElementById('sp-play-icon');
-  playIcon.innerHTML=spState.playing
-    ?'<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
-    :'<path d="M8 5v14l11-7z"/>';
+  playIcon.innerHTML=spState.playing?'<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>':'<path d="M8 5v14l11-7z"/>';
   document.getElementById('sp-total').textContent=fmtMs(spState.duration);
   if(spProgressInterval)clearInterval(spProgressInterval);
-  if(spState.playing){
-    spProgressInterval=setInterval(()=>{
-      spState.position+=500;
-      spUpdateProgress();
-    },500);
-  }
+  if(spState.playing){spProgressInterval=setInterval(()=>{spState.position+=500;spUpdateProgress();},500);}
   spUpdateProgress();
 }
 function spUpdateProgress(){
@@ -315,12 +303,9 @@ function fmtMs(ms){const s=Math.floor(ms/1000),m=Math.floor(s/60);return`${m}:${
 
 async function spSearch(q){
   if(!q.trim()||!spotifyToken)return;
-  const res=await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=8`,{
-    headers:{'Authorization':'Bearer '+spotifyToken}
-  });
+  const res=await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=8`,{headers:{'Authorization':'Bearer '+spotifyToken}});
   const d=await res.json();
-  const container=document.getElementById('sp-results');
-  container.innerHTML='';
+  const container=document.getElementById('sp-results');container.innerHTML='';
   (d.tracks?.items||[]).forEach(t=>{
     const el=document.createElement('div');el.className='sp-result';
     el.innerHTML=`<img src="${t.album.images[2]?.url||''}" alt=""/><div class="sp-result-meta"><div class="sp-result-name">${t.name}</div><div class="sp-result-sub">${t.artists.map(a=>a.name).join(', ')} · ${t.album.name}</div></div>`;
@@ -349,7 +334,6 @@ document.getElementById('sp-bar-bg').addEventListener('click',function(e){
   spotifyPlayer.seek(Math.floor(pct*spState.duration));
 });
 
-// --- Location ---
 document.getElementById('gps-btn').addEventListener('click',()=>{
   setErr('');
   if(!navigator.geolocation)return setErr('Geolocation not supported.');
@@ -384,7 +368,6 @@ function launch(){
   spHandleCallback();
 }
 
-// --- Panels ---
 function closeAll(){
   radarOpen=forecastOpen=spotifyOpen=false;
   ['radar-panel','forecast-panel','spotify-panel'].forEach(id=>document.getElementById(id).classList.remove('open'));
@@ -414,7 +397,6 @@ document.getElementById('spotify-btn').addEventListener('click',function(){
   this.textContent='Close';
 });
 
-// --- Leaflet ---
 function loadLeaflet(){
   return new Promise(res=>{
     if(window.L){res();return;}
@@ -434,7 +416,6 @@ async function initRadar(){
   rMap.invalidateSize();
 }
 
-// --- Forecast icons ---
 function fcIcon(code){
   const w='rgba(255,255,255,0.82)',d='rgba(255,255,255,0.28)';
   if(code===0)return`<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="6" fill="${w}"/><g stroke="${w}" stroke-width="1.5" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const rd=a*Math.PI/180,x1=14+Math.cos(rd)*9,y1=14+Math.sin(rd)*9,x2=14+Math.cos(rd)*12,y2=14+Math.sin(rd)*12;return`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;}).join('')}</g></svg>`;
@@ -467,7 +448,6 @@ async function fetchForecast(){
   }catch{document.getElementById('forecast-loading').textContent='Forecast unavailable';}
 }
 
-// --- Stars ---
 const sC=document.getElementById('stars'),sX=sC.getContext('2d');let stars=[];
 function initStars(){
   const dpr=devicePixelRatio||1,w=innerWidth,h=innerHeight;
@@ -479,7 +459,6 @@ function drawStars(op){
   stars.forEach(s=>{sX.beginPath();sX.arc(s.x,s.y,s.r,0,Math.PI*2);sX.fillStyle=`rgba(255,255,255,${s.a*op})`;sX.fill();});
 }
 
-// --- Precip ---
 const pC=document.getElementById('rain-canvas'),pX=pC.getContext('2d');
 function initPC(){const dpr=devicePixelRatio||1,w=innerWidth,h=innerHeight;pC.width=w*dpr;pC.height=h*dpr;pC.style.width=w+'px';pC.style.height=h+'px';pX.setTransform(dpr,0,0,dpr,0,0);}
 function animP(){
@@ -495,7 +474,6 @@ function animP(){
   requestAnimationFrame(animP);
 }
 
-// --- Moon ---
 const mC=document.getElementById('moon-canvas'),mX=mC.getContext('2d');
 function initMC(){const dpr=devicePixelRatio||1,w=innerWidth,h=innerHeight;mC.width=w*dpr;mC.height=h*dpr;mC.style.width=w+'px';mC.style.height=h+'px';mX.setTransform(dpr,0,0,dpr,0,0);}
 function lunarPhase(){const k=new Date('2000-01-06T18:14:00Z'),s=29.53058867,diff=(Date.now()-k)/86400000;return((diff%s)+s)%s/s;}
@@ -505,71 +483,33 @@ function renderMoon(bx,by,sz,opacity){
   const w=innerWidth,h=innerHeight;
   mX.clearRect(0,0,w,h);
   if(opacity<=0)return;
-  const cx=bx/100*w, cy=by/100*h, r=sz/2;
-  const phase=lunarPhase();
-  const illum=phase<=0.5?phase*2:(1-phase)*2;
-  const waxing=phase<0.5;
-
-  mX.save();
-  mX.globalAlpha=opacity;
-
-  // Glow
+  const cx=bx/100*w,cy=by/100*h,r=sz/2;
+  const phase=lunarPhase(),illum=phase<=0.5?phase*2:(1-phase)*2,waxing=phase<0.5;
+  mX.save();mX.globalAlpha=opacity;
   const glow=mX.createRadialGradient(cx,cy,r*0.8,cx,cy,r*3.5);
-  glow.addColorStop(0,`rgba(220,208,160,${0.08+illum*0.13})`);
-  glow.addColorStop(1,'rgba(220,208,160,0)');
+  glow.addColorStop(0,`rgba(220,208,160,${0.08+illum*0.13})`);glow.addColorStop(1,'rgba(220,208,160,0)');
   mX.beginPath();mX.arc(cx,cy,r*3.5,0,Math.PI*2);mX.fillStyle=glow;mX.fill();
-
-  const dpr=window.devicePixelRatio||1;
-  const pad=4;
-  const dia=Math.ceil(r*2)+pad*2;
-  const off=document.createElement('canvas');
-  off.width=off.height=dia*dpr;
-  const ox=off.getContext('2d');
-  const img=ox.createImageData(dia*dpr,dia*dpr);
-  const D=img.data;
+  const dpr=window.devicePixelRatio||1,pad=4,dia=Math.ceil(r*2)+pad*2;
+  const off=document.createElement('canvas');off.width=off.height=dia*dpr;
+  const ox=off.getContext('2d'),img=ox.createImageData(dia*dpr,dia*dpr),D=img.data;
   const cr=r*dpr,cc=dia*dpr/2;
-
-  for(let py=0;py<dia*dpr;py++){
-    for(let px=0;px<dia*dpr;px++){
-      const nx=(px-cc)/cr,ny=(py-cc)/cr;
-      const d2=nx*nx+ny*ny;
-      if(d2>=1)continue;
-      const nz=Math.sqrt(1-d2);
-      const angle=(1-illum)*Math.PI*0.48;
-      const lx=(waxing?1:-1)*Math.sin(angle);
-      const lz=Math.cos(angle);
-      const dot=nx*lx+nz*lz;
-      const s=0.25;
-      let lit=Math.max(0,Math.min(1,(dot+s)/(s*2)));
-      lit=lit*lit*(3-2*lit);
-      const limb=nz*0.55+0.45;
-      const f=lit*limb;
-      const i=(py*dia*dpr+px)*4;
-      D[i  ]=Math.round(248*f+10*(1-f));
-      D[i+1]=Math.round(238*f+12*(1-f));
-      D[i+2]=Math.round(185*f+28*(1-f));
-      D[i+3]=255;
-    }
-  }
+  for(let py=0;py<dia*dpr;py++){for(let px=0;px<dia*dpr;px++){
+    const nx=(px-cc)/cr,ny=(py-cc)/cr,d2=nx*nx+ny*ny;
+    if(d2>=1)continue;
+    const nz=Math.sqrt(1-d2),angle=(1-illum)*Math.PI*0.48,lx=(waxing?1:-1)*Math.sin(angle),lz=Math.cos(angle);
+    const dot=nx*lx+nz*lz,s=0.25;
+    let lit=Math.max(0,Math.min(1,(dot+s)/(s*2)));lit=lit*lit*(3-2*lit);
+    const limb=nz*0.55+0.45,f=lit*limb,i=(py*dia*dpr+px)*4;
+    D[i]=Math.round(248*f+10*(1-f));D[i+1]=Math.round(238*f+12*(1-f));D[i+2]=Math.round(185*f+28*(1-f));D[i+3]=255;
+  }}
   ox.putImageData(img,0,0);
-
-  mX.save();
-  mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();
-  mX.drawImage(off,cx-r-pad,cy-r-pad,dia,dia);
-  mX.restore();
-
-  // Wide atmospheric glow
+  mX.save();mX.beginPath();mX.arc(cx,cy,r,0,Math.PI*2);mX.clip();mX.drawImage(off,cx-r-pad,cy-r-pad,dia,dia);mX.restore();
   const glow2=mX.createRadialGradient(cx,cy,r*0.9,cx,cy,r*6);
-  glow2.addColorStop(0,`rgba(210,195,145,${0.15+illum*0.1})`);
-  glow2.addColorStop(0.25,`rgba(210,195,145,${0.06+illum*0.04})`);
-  glow2.addColorStop(0.6,'rgba(210,195,145,0.02)');
-  glow2.addColorStop(1,'rgba(210,195,145,0)');
+  glow2.addColorStop(0,`rgba(210,195,145,${0.15+illum*0.1})`);glow2.addColorStop(0.25,`rgba(210,195,145,${0.06+illum*0.04})`);glow2.addColorStop(0.6,'rgba(210,195,145,0.02)');glow2.addColorStop(1,'rgba(210,195,145,0)');
   mX.beginPath();mX.arc(cx,cy,r*6,0,Math.PI*2);mX.fillStyle=glow2;mX.fill();
-
   mX.restore();
 }
 
-// --- Weather ---
 function interpWMO(c){
   if(c===0)return{desc:'clear',isRain:false,isSnow:false,isFog:false,isThunder:false};
   if(c<=2)return{desc:'partly cloudy',isRain:false,isSnow:false,isFog:false,isThunder:false};
@@ -590,7 +530,6 @@ async function fetchWx(){
   }catch(e){console.warn(e);}
 }
 
-// --- Helpers ---
 const lerp=(a,b,t)=>a+(b-a)*t;
 const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
 function lc(a,b,t){const[r1,g1,b1]=hex(a),[r2,g2,b2]=hex(b);return`rgb(${Math.round(lerp(r1,r2,t))},${Math.round(lerp(g1,g2,t))},${Math.round(lerp(b1,b2,t))})`;}
@@ -647,13 +586,11 @@ function update(){
   const tc=lc(ka.text,kb.text,kt),ph=kt<0.5?ka.phase:kb.phase;
   if(cc>0){const ct=night?'#1a1a22':wx.isThunder?'#2a2a35':'#7a8a9a',cb=night?'#22222e':wx.isThunder?'#353545':'#a0aab5';top=lc(top,ct,cc*0.85);bot=lc(bot,cb,cc*0.85);}
   document.getElementById('sky').style.background=`linear-gradient(to bottom,${top} 0%,${bot} 100%)`;
-
   const{a:ba,b:bb,t:bt}=interp(BODY,hf);
   const bx=lerp(ba.x,bb.x,bt),byRaw=lerp(ba.y,bb.y,bt),bsz=lerp(ba.sz,bb.sz,bt),bcol=lc(ba.col,bb.col,bt),sop=lerp(ba.so,bb.so,bt);
   const by=Math.min(byRaw,92);
   const moon=bt<0.5?ba.moon:bb.moon,bop=Math.max(0,1-cc*1.35);
   const sm=document.getElementById('sun-moon');
-
   if(moon){
     sm.style.cssText='position:absolute;width:0;height:0;opacity:0;';
     renderMoon(bx,by,bsz,bop);
@@ -661,24 +598,18 @@ function update(){
     mX.clearRect(0,0,innerWidth,innerHeight);
     sm.style.cssText=`position:absolute;border-radius:50%;left:calc(${bx}% - ${bsz/2}px);top:calc(${by}% - ${bsz/2}px);width:${bsz}px;height:${bsz}px;opacity:${bop};background:radial-gradient(circle at 40% 38%,#fffde0,${bcol});box-shadow:0 0 ${bsz}px ${bcol},0 0 ${bsz*2}px rgba(255,200,80,0.5),0 0 ${bsz*4}px rgba(255,160,40,0.18);z-index:2;`;
   }
-
   drawStars(sop*(1-cc));
-
   const hg=document.getElementById('horizon-glow'),golden=(hf>=5.5&&hf<=8)||(hf>=17&&hf<=20),gs=1-cc*0.9;
   hg.style.background=golden&&gs>0.05?`linear-gradient(to top,rgba(255,${hf<12?130:100},40,${0.42*gs}),transparent)`:hf>=20||hf<5?'linear-gradient(to top,rgba(30,10,60,0.38),transparent)':'linear-gradient(to top,rgba(120,180,255,0.08),transparent)';
-
   ['c1','c2','c3','c4','c5'].forEach((id,i)=>{
     const el=document.getElementById(id),ops=[0.18,0.13,0.16,0.14,0.12];
     if(cc>0.05){el.style.background=night?'rgba(55,58,78,1)':wx.isThunder?'rgba(48,50,65,1)':'rgba(255,255,255,1)';el.style.opacity=i<Math.ceil(cc*5)?ops[i]+cc*0.52:0;}
     else el.style.opacity=0;
   });
-
   const fog=document.getElementById('fog-overlay');
   fog.style.background=wx.isFog?'radial-gradient(ellipse at 50% 80%,rgba(200,210,220,0.5) 0%,rgba(180,190,205,0.25) 60%,transparent 100%)':'';
   fog.style.opacity=wx.isFog?1:0;
-
   maybeThunder();
-
   ['time-display','phase-display','weather-display','moon-phase-display'].forEach(id=>document.getElementById(id).style.color=tc);
   document.getElementById('time-display').textContent=fmtTime(now);
   document.getElementById('phase-display').textContent=ph;
